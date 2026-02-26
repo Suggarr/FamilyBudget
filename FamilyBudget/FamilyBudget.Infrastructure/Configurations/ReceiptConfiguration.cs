@@ -1,4 +1,4 @@
-﻿using FamilyBudgetBot.Core.Models;
+﻿using FamilyBudgetBot.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -19,19 +19,21 @@ namespace FamilyBudget.Infrastructure.Configurations
                 .HasMaxLength(500)
                 .IsRequired();
 
-            builder.Property(r => r.TotalAmount)
-                .HasPrecision(18, 2)
+            builder.Property(r => r.IsProcessed)
                 .IsRequired();
+
+            builder.Property(r => r.TotalAmount)
+                .HasPrecision(18, 2);
 
             builder.HasOne(r => r.User)
                 .WithMany(u => u.Receipts)
-                .HasForeignKey(r => r.User.Id)
+                .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(r => r.Family)
                 .WithMany()
-                .HasForeignKey(r => r.Family.Id)
-                .OnDelete(DeleteBehavior.Cascade);
+                .HasForeignKey(r => r.FamilyId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

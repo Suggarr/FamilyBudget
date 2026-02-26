@@ -1,4 +1,4 @@
-﻿using FamilyBudgetBot.Core.Models;
+﻿using FamilyBudgetBot.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -17,12 +17,7 @@ namespace FamilyBudget.Infrastructure.Configurations
 
             builder.Property(f => f.Name)
                 .IsRequired()
-                .HasMaxLength(100);
-
-            builder.HasMany(f => f.Users)
-                .WithOne(u => u.Family)
-                .HasForeignKey(u => u.FamilyId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .HasMaxLength(150);
         }
     }
 }

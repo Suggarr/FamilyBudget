@@ -1,4 +1,5 @@
-﻿using FamilyBudgetBot.Core.Models;
+﻿using FamilyBudget.Infrastructure.Configurations;
+using FamilyBudgetBot.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -36,9 +37,10 @@ namespace FamilyBudget.Infrastructure
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            //modelBuilder.ApplyConfiguration();
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
             base.OnModelCreating(modelBuilder);
         }
+
         public ILoggerFactory CreateLoggerFactory() =>
             LoggerFactory.Create(builder => { builder.AddConsole(); });
     }

@@ -1,4 +1,4 @@
-﻿using FamilyBudgetBot.Core.Models;
+﻿using FamilyBudgetBot.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -28,7 +28,7 @@ namespace FamilyBudget.Infrastructure.Configurations
                 .IsRequired();
 
             builder.HasOne(g => g.Family)
-                .WithMany()
+                .WithMany(g => g.Goals)
                 .HasForeignKey(g => g.FamilyId)
                 .OnDelete(DeleteBehavior.Cascade);
         }

@@ -1,4 +1,4 @@
-﻿using FamilyBudgetBot.Core.Models;
+﻿using FamilyBudgetBot.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -17,19 +17,14 @@ namespace FamilyBudget.Infrastructure.Configurations
 
             builder.Property(u => u.Name)
                 .IsRequired()
-                .HasMaxLength(100);
+                .HasMaxLength(User.MAX_NAME_LENGTH);
 
-            builder.Property(u => u.TelegramId)
-                .IsRequired();
-
-            builder.HasOne(u => u.Family)
-                .WithMany(f => f.Users)
-                .HasForeignKey(u => u.FamilyId)
-                .OnDelete(DeleteBehavior.Cascade);
+            builder.HasIndex(u => u.TelegramId)
+                .IsUnique();
 
             builder.HasMany(u => u.Expenses)
-                .WithOne(e => e.User)
-                .HasForeignKey(e => e.UserId)
+                .WithOne(u => u.User)
+                .HasForeignKey(u => u.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }
