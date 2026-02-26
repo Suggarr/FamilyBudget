@@ -24,9 +24,24 @@ public class Receipt
     public Family Family { get; private set; } = null!;
     public User User { get; private set; } = null!;
 
-    public void MarkAsProcessed(decimal totalAmount)
+    //public void MarkAsProcessed(decimal totalAmount)
+    //{
+    //    IsProcessed = true;
+    //    TotalAmount = totalAmount;
+    //}
+
+    public static (Receipt? Receipt, string Error) Create(
+    Guid id,
+    Guid familyId,
+    Guid userId,
+    string filePath)
     {
-        IsProcessed = true;
-        TotalAmount = totalAmount;
+        if (id == Guid.Empty)
+            return (null, "Id is required");
+
+        if (string.IsNullOrWhiteSpace(filePath))
+            return (null, "FilePath is required");
+
+        return (new Receipt(id, familyId, userId, filePath), string.Empty);
     }
 }

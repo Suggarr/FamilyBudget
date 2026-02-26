@@ -2,19 +2,18 @@
 
 public class Income
 {
+    public const int MAX_SOURCE_LENGTH = 200;
+
     private Income() {}
 
-    public Income(Guid familyId, Guid userId, decimal amount, string source)
+    public Income(Guid id, Guid familyId, Guid userId, decimal amount, string source, DateTime date)
     {
-        if (amount <= 0)
-            throw new ArgumentException("Число должно быть положительным");
-
-        Id = Guid.NewGuid();
+        Id = id;
         FamilyId = familyId;
         UserId = userId;
         Amount = amount;
         Source = source;
-        Date = DateTime.UtcNow;
+        Date = date;
     }
     
     public Guid Id { get; private set; }
@@ -27,4 +26,26 @@ public class Income
 
     public Family Family { get; private set; } = null!;
     public User User { get; private set; } = null!;
+
+    public static (Income? Income, string Error) Create(
+        Guid id,
+        Guid familyId,
+        Guid userId,
+        decimal amount,
+        string source,
+        DateTime date)
+    {
+        if (id == Guid.Empty)
+            return (null, "Id is required");
+
+        if (amount <= 0)
+            return (null, "Amount must be greater than zero");
+
+        if (!string.IsNullOrEmpty(source) &&
+            source.Length > MAX_SOURCE_LENGTH)
+            return (null, $"Source can not exceed {MAX_SOURCE_LENGTH} symbols");
+
+        return (new Income(id, familyId, userId, amount, source, date),
+                string.Empty);
+    }
 }

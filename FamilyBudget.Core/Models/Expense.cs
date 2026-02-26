@@ -2,14 +2,14 @@
 
 public class Expense
 {
-    // public const int MAX_DESCRIPTION_LENGTH = 300;
+    public const int MAX_DESCRIPTION_LENGTH = 300;
 
     private Expense() {}
     
-    public Expense(Guid familyId, Guid userId, Guid categoryId, decimal amount,
+    public Expense(Guid id, Guid familyId, Guid userId, Guid categoryId, decimal amount,
         string description, DateTime date)
     {
-        Id = Guid.NewGuid();
+        Id = id;
         FamilyId = familyId;
         UserId = userId;
         CategoryId = categoryId;
@@ -30,38 +30,38 @@ public class Expense
     public Family Family = null!;
     public User User = null!;
     public Category Category = null!;
-    
-    // public static (Expense Expense, string Error) Create(Guid id, Guid familyId, Guid userId, Guid categoryId, 
-    //     decimal amount, string description)
-    // {
-    //     var error = string.Empty;
-    //     if (familyId == Guid.Empty)
-    //     {
-    //         error = "FamilyId is required";
-    //     }
-    //     
-    //     if (userId == Guid.Empty)
-    //     {
-    //         error = "UserId is required";
-    //     }
-    //     
-    //     if (categoryId == Guid.Empty)
-    //     {
-    //         error = "CategoryId is required";
-    //     }
-    //     
-    //     if (amount <= 0)
-    //     {
-    //         error = "Amount must be greater than zero";
-    //     }
-    //     if (string.IsNullOrWhiteSpace(description) || description.Length > MAX_DESCRIPTION_LENGTH)
-    //     {
-    //         error = $"Name can not be empty or longer than {MAX_DESCRIPTION_LENGTH} symbols";
-    //     }
-    //
-    //     var expense = new Expense(id, familyId, userId, categoryId, amount, 
-    //         description, DateTime.UtcNow);
-    //
-    //     return (expense, error);
-    // }
+
+    public static (Expense Expense, string Error) Create(Guid id, Guid familyId, Guid userId, Guid categoryId,
+        decimal amount, string description)
+    {
+        var error = string.Empty;
+        if (familyId == Guid.Empty)
+        {
+            error = "FamilyId is required";
+        }
+
+        if (userId == Guid.Empty)
+        {
+            error = "UserId is required";
+        }
+
+        if (categoryId == Guid.Empty)
+        {
+            error = "CategoryId is required";
+        }
+
+        if (amount <= 0)
+        {
+            error = "Amount must be greater than zero";
+        }
+        if (string.IsNullOrWhiteSpace(description) || description.Length > MAX_DESCRIPTION_LENGTH)
+        {
+            error = $"Name can not be empty or longer than {MAX_DESCRIPTION_LENGTH} symbols";
+        }
+
+        var expense = new Expense(id, familyId, userId, categoryId, amount,
+            description, DateTime.UtcNow);
+
+        return (expense, error);
+    }
 }
