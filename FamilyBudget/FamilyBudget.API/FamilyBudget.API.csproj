@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FamilyBudget.Infrastructure\FamilyBudget.Infrastructure.csproj" />
+    <ProjectReference Include="..\FamilyBudget.Application\FamilyBudget.Application.csproj" />
   </ItemGroup>
 
 </Project>

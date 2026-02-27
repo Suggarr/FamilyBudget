@@ -1,13 +1,7 @@
-﻿using FamilyBudget.Infrastructure.Configurations;
-using FamilyBudgetBot.Core.Entities;
+﻿using FamilyBudgetBot.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FamilyBudget.Infrastructure
 {

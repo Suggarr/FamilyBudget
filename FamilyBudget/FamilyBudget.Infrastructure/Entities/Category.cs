@@ -1,4 +1,4 @@
-﻿namespace FamilyBudgetBot.Core.Entities;
+﻿namespace FamilyBudget.Infrastructure.Entities;
 
 public class Category
 {

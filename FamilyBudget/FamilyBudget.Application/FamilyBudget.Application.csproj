@@ -21,4 +21,9 @@
     <Folder Include="Services\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\FamilyBudget.Core\FamilyBudget.Core.csproj" />
+    <ProjectReference Include="..\FamilyBudget.Infrastructure\FamilyBudget.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>
