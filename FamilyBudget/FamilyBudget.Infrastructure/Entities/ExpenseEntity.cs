@@ -1,17 +1,17 @@
 ﻿namespace FamilyBudget.Infrastructure.Entities;
 
-public class Expense
+public class ExpenseEntity
 {
     public Guid Id { get; set; }
 
     public Guid FamilyId { get; set; }
-    public Family Family = null!;
+    public FamilyEntity Family = null!;
 
     public Guid UserId { get; set; }
-    public User User = null!;
+    public UserEntity User = null!;
 
     public Guid CategoryId { get; set; }
-    public Category Category = null!;
+    public CategoryEntity Category = null!;
 
     public decimal Amount{ get; set; }
     public string Description { get; set; } = string.Empty;

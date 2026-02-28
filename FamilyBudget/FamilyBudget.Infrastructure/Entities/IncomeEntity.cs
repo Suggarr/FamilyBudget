@@ -1,14 +1,14 @@
 ﻿namespace FamilyBudget.Infrastructure.Entities;
 
-public class Income
+public class IncomeEntity
 { 
     public Guid Id { get; set; }
 
     public Guid FamilyId { get; set; }
-    public Family Family { get; set; } = null!;
+    public FamilyEntity Family { get; set; } = null!;
 
     public Guid UserId { get; set; }
-    public User User { get; set; } = null!;
+    public UserEntity User { get; set; } = null!;
 
     public decimal Amount { get; set; }
     public string Source { get; set; } = string.Empty;

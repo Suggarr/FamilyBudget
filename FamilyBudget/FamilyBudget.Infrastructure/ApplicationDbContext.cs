@@ -1,4 +1,4 @@
-﻿using FamilyBudgetBot.Infrastructure.Entities;
+﻿using FamilyBudget.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -14,13 +14,13 @@ namespace FamilyBudget.Infrastructure
             _configuration = configuration;
         }
 
-        public DbSet<User> Users { get; set; }
-        public DbSet<Family> Families { get; set; }
-        public DbSet<Expense> Expenses { get; set; }
-        public DbSet<Receipt> Receipts { get; set; }
-        public DbSet<Goal> Goals { get; set; }
-        public DbSet<Income> Incomes { get; set; }
-        public DbSet<Category> Categories { get; set; }
+        public DbSet<UserEntity> Users { get; set; }
+        public DbSet<FamilyEntity> Families { get; set; }
+        public DbSet<ExpenseEntity> Expenses { get; set; }
+        public DbSet<ReceiptEntity> Receipts { get; set; }
+        public DbSet<GoalEntity> Goals { get; set; }
+        public DbSet<IncomeEntity> Incomes { get; set; }
+        public DbSet<CategoryEntity> Categories { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
