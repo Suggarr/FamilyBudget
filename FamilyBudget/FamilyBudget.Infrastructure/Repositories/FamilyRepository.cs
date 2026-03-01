@@ -1,4 +1,6 @@
-﻿using FamilyBudget.Core.Models;
+﻿using AutoMapper;
+using FamilyBudget.Core.Interfaces;
+using FamilyBudget.Core.Models;
 using FamilyBudget.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -9,13 +11,15 @@ using System.Threading.Tasks;
 
 namespace FamilyBudget.Infrastructure.Repositories
 {
-    public class FamilyRepositories
+    public class FamilyRepository : IFamilyRepository
     {
         private readonly ApplicationDbContext _context;
+        private readonly IMapper _mapper;
 
-        public FamilyRepositories(ApplicationDbContext context)
+        public FamilyRepository(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public async Task<List<Family>> GetAllAsync()
@@ -24,30 +28,27 @@ namespace FamilyBudget.Infrastructure.Repositories
                 .AsNoTracking()
                 .ToListAsync();
 
-            return familyEntities.Select(f => Family.Create(f.Id, f.Name).Value).ToList();
+            return _mapper.Map<List<Family>>(familyEntities);
         }
 
         public async Task<Family?> GetByIdAsync(Guid id)
         {
             var familyEntity = await _context.Families.FindAsync(id);
 
-            return familyEntity == null ? null : Family.Create(familyEntity.Id, familyEntity.Name).Value;
+            return familyEntity == null ? null : _mapper.Map<Family>(familyEntity);
         }
 
         public async Task<Family?> GetByNameAsync(string name)
         {
             var familyEntity = await _context.Families.FirstOrDefaultAsync(f => f.Name == name);
 
-            return familyEntity == null ? null : Family.Create(familyEntity.Id, familyEntity.Name).Value;
+            return familyEntity == null ? null : _mapper.Map<Family>(familyEntity);
         }
 
         public async Task<Guid> AddAsync(Family family)
         {
-            var familyEntity = new FamilyEntity
-            {
-                Id = family.Id,
-                Name = family.Name
-            };
+            var familyEntity = _mapper.Map<FamilyEntity>(family);
+
             await _context.Families.AddAsync(familyEntity);
             await _context.SaveChangesAsync();
 

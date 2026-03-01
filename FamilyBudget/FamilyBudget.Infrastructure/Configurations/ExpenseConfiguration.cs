@@ -1,4 +1,4 @@
-﻿using FamilyBudgetBot.Infrastructure.Entities;
+﻿using FamilyBudget.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace FamilyBudget.Infrastructure.Configurations
 {
-    public class ExpenseConfiguration : IEntityTypeConfiguration<Expense>
+    public class ExpenseConfiguration : IEntityTypeConfiguration<ExpenseEntity>
     {
-        public void Configure(EntityTypeBuilder<Expense> builder)
+        public void Configure(EntityTypeBuilder<ExpenseEntity> builder)
         {
             builder.HasKey(e => e.Id);
 
@@ -30,10 +30,10 @@ namespace FamilyBudget.Infrastructure.Configurations
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(e => e.Category)
-                .WithMany(e => e.Expenses)
-                .HasForeignKey(e => e.CategoryId)
-                .OnDelete(DeleteBehavior.Restrict);
+            //builder.HasOne(e => e.Category)
+            //    .WithMany(e => e.Expenses)
+            //    .HasForeignKey(e => e.CategoryId)
+            //    .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(e => e.Family)
                 .WithMany(e => e.Expenses)

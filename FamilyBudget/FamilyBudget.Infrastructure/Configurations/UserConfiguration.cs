@@ -1,4 +1,4 @@
-﻿using FamilyBudgetBot.Infrastructure.Entities;
+﻿using FamilyBudget.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -9,15 +9,15 @@ using System.Threading.Tasks;
 
 namespace FamilyBudget.Infrastructure.Configurations
 {
-    public class UserConfiguration: IEntityTypeConfiguration<User>
+    public class UserConfiguration: IEntityTypeConfiguration<UserEntity>
     {
-        public void Configure(EntityTypeBuilder<User> builder)
+        public void Configure(EntityTypeBuilder<UserEntity> builder)
         {
             builder.HasKey(u => u.Id);
 
             builder.Property(u => u.Name)
                 .IsRequired()
-                .HasMaxLength(User.MAX_NAME_LENGTH);
+                .HasMaxLength(UserEntity.MAX_NAME_LENGTH);
 
             builder.HasIndex(u => u.TelegramId)
                 .IsUnique();

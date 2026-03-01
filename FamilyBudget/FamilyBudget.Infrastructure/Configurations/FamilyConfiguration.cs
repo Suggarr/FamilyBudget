@@ -1,4 +1,4 @@
-﻿using FamilyBudgetBot.Infrastructure.Entities;
+﻿using FamilyBudget.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace FamilyBudget.Infrastructure.Configurations
 {
-    public class FamilyConfiguration : IEntityTypeConfiguration<Family>
+    public class FamilyConfiguration : IEntityTypeConfiguration<FamilyEntity>
     {
-        public void Configure(EntityTypeBuilder<Family> builder)
+        public void Configure(EntityTypeBuilder<FamilyEntity> builder)
         {
             builder.HasKey(f => f.Id);
 

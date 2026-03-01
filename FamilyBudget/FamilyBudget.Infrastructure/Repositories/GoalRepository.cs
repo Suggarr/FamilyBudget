@@ -1,4 +1,6 @@
-﻿using CSharpFunctionalExtensions;
+﻿using AutoMapper;
+using CSharpFunctionalExtensions;
+using FamilyBudget.Core.Interfaces;
 using FamilyBudget.Core.Models;
 using FamilyBudget.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -10,35 +12,30 @@ using System.Threading.Tasks;
 
 namespace FamilyBudget.Infrastructure.Repositories
 {
-    public class GoalRepository 
+    public class GoalRepository : IGoalRepository
     {
         private readonly ApplicationDbContext _context;
+        private readonly IMapper _mapper;
 
-        public GoalRepository(ApplicationDbContext context)
+        public GoalRepository(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
-        public async Task<IEnumerable<Goal>> GetByFamilyId(Guid familyId)
+        public async Task<IEnumerable<Goal>> GetByFamilyIdAsync(Guid familyId)
         {
             var goalEntities = await _context.Goals
                 .AsNoTracking()
                 .Where(g => g.FamilyId == familyId)
                 .ToListAsync();
 
-            return goalEntities.Select(g => Goal.Create(g.Id, g.FamilyId, g.Title, g.TargetAmount, g.CurrentAmount).Value);
+            return _mapper.Map<IEnumerable<Goal>>(goalEntities);
         }
 
         public async Task<Guid> AddAsync(Goal goal)
         {
-            var goalEntity = new GoalEntity
-            {
-                Id = goal.Id,
-                FamilyId = goal.FamilyId,
-                Title = goal.Title,
-                TargetAmount = goal.TargetAmount,
-                CurrentAmount = goal.CurrentAmount
-            };
+            var goalEntity = _mapper.Map<GoalEntity>(goal); ;
 
             _context.Goals.Add(goalEntity);
             await _context.SaveChangesAsync();
@@ -55,6 +52,17 @@ namespace FamilyBudget.Infrastructure.Repositories
                     .SetProperty(g => g.TargetAmount, targetAmount)
                     .SetProperty(g => g.CurrentAmount, currentAmount));
 
+            return id;
+        }
+
+        public async Task<Guid> DeleteAsync(Guid id)
+        {
+            var goalEntity = await _context.Goals.FindAsync(id);
+            if (goalEntity != null)
+            {
+                _context.Goals.Remove(goalEntity);
+                await _context.SaveChangesAsync();
+            }
             return id;
         }
     }

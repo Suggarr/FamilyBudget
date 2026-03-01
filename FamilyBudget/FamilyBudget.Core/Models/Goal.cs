@@ -12,14 +12,14 @@ public class Goal
         FamilyId = familyId;
         Title = title;
         TargetAmount = targetAmount;
-        CurrentAmount = currentAmount; //0
+        CurrentAmount = currentAmount; 
     }
 
     public Guid Id { get; }
     public Guid FamilyId { get; }
     public string Title { get; }
     public decimal TargetAmount { get; }
-    public decimal CurrentAmount { get; }
+    public decimal CurrentAmount { get; private set; }
 
     public static Result<Goal> Create(Guid id, Guid familyId, string title, decimal targetAmount, decimal currentAmount)
     {
@@ -42,5 +42,24 @@ public class Goal
 
         var goal = new Goal(id, familyId, title.Trim(), targetAmount, currentAmount);
         return Result.Success(goal);
+    }
+
+    public Result AddMoney(decimal amount)
+    {
+        if (amount <= 0)
+            return Result.Failure("Amount must be greater than 0");
+
+        if (CurrentAmount + amount > TargetAmount)
+            return Result.Failure("Goal cannot exceed target amount.");
+
+        CurrentAmount += amount;
+        return Result.Success();
+    }
+
+    public bool IsCompleted => CurrentAmount >= TargetAmount;
+
+    public decimal GetProgressPercent()
+    {
+        return TargetAmount == 0 ? 0 : (CurrentAmount / TargetAmount) * 100;
     }
 }

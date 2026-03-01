@@ -1,4 +1,6 @@
-﻿using CSharpFunctionalExtensions;
+﻿using AutoMapper;
+using CSharpFunctionalExtensions;
+using FamilyBudget.Core.Interfaces;
 using FamilyBudget.Core.Models;
 using FamilyBudget.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -10,13 +12,15 @@ using System.Threading.Tasks;
 
 namespace FamilyBudget.Infrastructure.Repositories
 {
-    public class ExpenseRepository 
+    public class ExpenseRepository : IExpenseRepository
     {
         private readonly ApplicationDbContext _context;
+        private readonly IMapper _mapper;
 
-        public ExpenseRepository(ApplicationDbContext context) 
+        public ExpenseRepository(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public async Task<List<Expense>> GetByFamilyIdAsync(Guid familyId)
@@ -26,8 +30,7 @@ namespace FamilyBudget.Infrastructure.Repositories
                 .Where(e => e.FamilyId == familyId)
                 .ToListAsync();
 
-            return expenseEntities.Select(e => Expense.Create(e.Id, e.FamilyId, e.UserId, e.CategoryId, e.Amount,
-                e.Description, e.Date).Value).ToList();
+            return _mapper.Map<List<Expense>>(expenseEntities);
         }
 
         public async Task<List<Expense>> GetByUserIdAsync(Guid userId)
@@ -37,23 +40,22 @@ namespace FamilyBudget.Infrastructure.Repositories
                 .Where(e => e.UserId == userId)
                 .ToListAsync();
 
-            return expenseEntities.Select(e => Expense.Create(e.Id, e.FamilyId, e.UserId, e.CategoryId, e.Amount,
-                e.Description, e.Date).Value).ToList();
+            return _mapper.Map<List<Expense>>(expenseEntities);
+        }
+
+        public async Task<List<Expense>> GetByPeriodAsync(Guid familyId, DateTime startDate, DateTime endDate)
+        {
+            var expenseEntities = await _context.Expenses
+                .AsNoTracking()
+                .Where(e => e.FamilyId == familyId && e.Date >= startDate && e.Date <= endDate)
+                .ToListAsync();
+
+            return _mapper.Map<List<Expense>>(expenseEntities);
         }
 
         public async Task<Guid> AddAsync(Expense expense)
         {
-            var expenseEntity = new ExpenseEntity
-            {
-                Id = expense.Id,
-                FamilyId = expense.FamilyId,
-                UserId = expense.UserId,
-                CategoryId = expense.CategoryId,
-                Amount = expense.Amount,
-                Description = expense.Description,
-                Date = expense.Date
-
-            };
+            var expenseEntity = _mapper.Map<ExpenseEntity>(expense);
 
             await _context.Expenses.AddAsync(expenseEntity);
             await _context.SaveChangesAsync();

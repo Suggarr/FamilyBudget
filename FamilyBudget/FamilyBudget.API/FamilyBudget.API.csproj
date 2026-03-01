@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FamilyBudget.Application\FamilyBudget.Application.csproj" />
+    <ProjectReference Include="..\FamilyBudget.Core\FamilyBudget.Core.csproj" />
   </ItemGroup>
 
 </Project>
