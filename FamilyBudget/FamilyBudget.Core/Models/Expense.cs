@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using FamilyBudget.Core.Enums;
 
 namespace FamilyBudget.Core.Models;
 
@@ -6,13 +7,13 @@ public class Expense
 {
     public const int MAX_DESCRIPTION_LENGTH = 300;
 
-    private Expense(Guid id, Guid familyId, Guid userId, Guid categoryId, decimal amount,
+    private Expense(Guid id, Guid familyId, Guid userId, ExpenseCategory category, decimal amount,
         string description, DateTime date)
     {
         Id = id;
         FamilyId = familyId;
         UserId = userId;
-        CategoryId = categoryId;
+        Category = category;
         Amount = amount;
         Description = description;
         Date = date;
@@ -21,12 +22,12 @@ public class Expense
     public Guid Id { get; }
     public Guid FamilyId { get; }
     public Guid UserId { get; }
-    public Guid CategoryId { get; }
+    public ExpenseCategory Category { get; }
     public decimal Amount{ get; }
     public string Description { get; }
     public DateTime Date { get; }
 
-    public static Result<Expense> Create(Guid id, Guid familyId, Guid userId, Guid categoryId, decimal amount,
+    public static Result<Expense> Create(Guid id, Guid familyId, Guid userId, ExpenseCategory category, decimal amount,
         string description, DateTime date)
     {
         if (amount <= 0)
@@ -43,7 +44,7 @@ public class Expense
             return Result.Failure<Expense>("Date cannot be in the future");
         }
 
-        var expense = new Expense(id, familyId, userId, categoryId, amount, description, date);
+        var expense = new Expense(id, familyId, userId, category, amount, description, date);
         return Result.Success(expense);
     }
 }

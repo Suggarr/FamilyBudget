@@ -13,6 +13,8 @@ namespace FamilyBudget.Telegram.State
         WaitingForExpenseCategory,
         WaitingForFamilyName,
         WaitingForUserName,
-        WaitingForExpenseDescription    
+        WaitingForExpenseDescription,
+        WaitingForIncomeAmount,
+        WaitingForIncomeDescription
     }
 }

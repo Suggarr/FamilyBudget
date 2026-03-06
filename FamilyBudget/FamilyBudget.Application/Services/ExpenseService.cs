@@ -28,7 +28,7 @@ namespace FamilyBudget.Application.Services
                 Guid.NewGuid(),
                 dto.FamilyId,
                 dto.UserId,
-                dto.CategoryId,
+                dto.Category,
                 dto.Amount,
                 dto.Description,
                 dto.Date);

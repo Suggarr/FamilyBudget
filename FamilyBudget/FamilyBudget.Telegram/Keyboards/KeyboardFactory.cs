@@ -15,18 +15,38 @@ namespace FamilyBudget.Telegram.Keyboards
             {
             new[]
             {
-                InlineKeyboardButton.WithCallbackData("💸 Расход", "expense"),
-                InlineKeyboardButton.WithCallbackData("💰 Доход", "income")
+                InlineKeyboardButton.WithCallbackData("➕ Расход", "expense"),
+                InlineKeyboardButton.WithCallbackData("💵 Доход", "income")
             },
             new[]
             {
-                InlineKeyboardButton.WithCallbackData("📁 Категории", "categories")
-            },
-            new[]
-            {
-                InlineKeyboardButton.WithCallbackData("📊 Отчёт", "report")
+                InlineKeyboardButton.WithCallbackData("📊 Отчет", "report"),
+                InlineKeyboardButton.WithCallbackData("🎯 Цели", "goals"),
+                InlineKeyboardButton.WithCallbackData("👨‍👩‍👧 Семья", "family")
             }
         });
+        }
+
+        public static InlineKeyboardMarkup ExpenseCategories()
+        {
+            return new InlineKeyboardMarkup(new[]
+            {
+                new[]
+                {
+                    InlineKeyboardButton.WithCallbackData("🍔 Еда", "cat_food"),
+                    InlineKeyboardButton.WithCallbackData("🚕 Транспорт", "cat_transport")
+                },
+                new[]
+                {
+                    InlineKeyboardButton.WithCallbackData("🏠 Дом", "cat_home"),
+                    InlineKeyboardButton.WithCallbackData("🎮 Развлечения", "cat_fun")
+                },
+                new[]
+                {
+                    InlineKeyboardButton.WithCallbackData("💊 Здоровье", "cat_health"),
+                    InlineKeyboardButton.WithCallbackData("📦 Другое", "cat_other")
+                }
+            });
         }
     }
 }

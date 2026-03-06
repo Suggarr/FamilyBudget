@@ -14,7 +14,7 @@ namespace FamilyBudget.Infrastructure.Mapper
         public ExpenseMappingProfile()
         {
             CreateMap<ExpenseEntity, Expense>()
-                .ConstructUsing(e => Expense.Create(e.Id, e.FamilyId, e.UserId, e.CategoryId, e.Amount, e.Description, e.Date).Value);
+                .ConstructUsing(e => Expense.Create(e.Id, e.FamilyId, e.UserId, e.Category, e.Amount, e.Description, e.Date).Value);
             CreateMap<Expense, ExpenseEntity>();
         }
     }

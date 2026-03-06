@@ -1,4 +1,6 @@
-﻿namespace FamilyBudget.Infrastructure.Entities;
+﻿using FamilyBudget.Core.Enums;
+
+namespace FamilyBudget.Infrastructure.Entities;
 
 public class ExpenseEntity
 {
@@ -10,8 +12,7 @@ public class ExpenseEntity
     public Guid UserId { get; set; }
     public UserEntity User = null!;
 
-    public Guid CategoryId { get; set; }
-    public CategoryEntity Category = null!;
+    public ExpenseCategory Category { get; set; }
 
     public decimal Amount{ get; set; }
     public string Description { get; set; } = string.Empty;

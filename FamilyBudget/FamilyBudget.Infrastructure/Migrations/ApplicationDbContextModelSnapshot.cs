@@ -22,28 +22,6 @@ namespace FamilyBudget.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.CategoryEntity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("FamilyId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FamilyId", "Name")
-                        .IsUnique();
-
-                    b.ToTable("Categories");
-                });
-
             modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.ExpenseEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -54,8 +32,8 @@ namespace FamilyBudget.Infrastructure.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
-                    b.Property<Guid>("CategoryId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("Category")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("timestamp with time zone");
@@ -72,8 +50,6 @@ namespace FamilyBudget.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
 
                     b.HasIndex("FamilyId");
 
@@ -187,25 +163,8 @@ namespace FamilyBudget.Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.CategoryEntity", b =>
-                {
-                    b.HasOne("FamilyBudget.Infrastructure.Entities.FamilyEntity", "Family")
-                        .WithMany("Categories")
-                        .HasForeignKey("FamilyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Family");
-                });
-
             modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.ExpenseEntity", b =>
                 {
-                    b.HasOne("FamilyBudget.Infrastructure.Entities.CategoryEntity", "Category")
-                        .WithMany("Expenses")
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("FamilyBudget.Infrastructure.Entities.FamilyEntity", "Family")
                         .WithMany("Expenses")
                         .HasForeignKey("FamilyId")
@@ -217,8 +176,6 @@ namespace FamilyBudget.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Category");
 
                     b.Navigation("Family");
 
@@ -266,15 +223,8 @@ namespace FamilyBudget.Infrastructure.Migrations
                     b.Navigation("Family");
                 });
 
-            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.CategoryEntity", b =>
-                {
-                    b.Navigation("Expenses");
-                });
-
             modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.FamilyEntity", b =>
                 {
-                    b.Navigation("Categories");
-
                     b.Navigation("Expenses");
 
                     b.Navigation("Goals");

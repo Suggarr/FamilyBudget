@@ -19,6 +19,9 @@ namespace FamilyBudget.Infrastructure.Configurations
                 .HasPrecision(18,2)
                 .IsRequired();
 
+            builder.Property(e => e.Category)
+                .IsRequired();
+
             builder.Property(e => e.Description)
                 .HasMaxLength(500);
 
@@ -28,11 +31,6 @@ namespace FamilyBudget.Infrastructure.Configurations
             builder.HasOne(e => e.User)
                 .WithMany(u => u.Expenses)
                 .HasForeignKey(e => e.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.HasOne(e => e.Category)
-                .WithMany(e => e.Expenses)
-                .HasForeignKey(e => e.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(e => e.Family)

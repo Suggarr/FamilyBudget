@@ -1,4 +1,5 @@
-﻿using FamilyBudget.Application.Interfaces;
+﻿using FamilyBudget.Application;
+using FamilyBudget.Application.Interfaces;
 using FamilyBudget.Application.Services;
 using FamilyBudget.Core.Interfaces;
 using FamilyBudget.Infrastructure;
@@ -35,7 +36,7 @@ builder.Services.AddSingleton<ITelegramBotClient>(
 // ================= AUTOMAPPER =================
 builder.Services.AddAutoMapper(typeof(UserMappingProfile));
 builder.Services.AddAutoMapper(typeof(FamilyMappingProfile));
-builder.Services.AddAutoMapper(typeof(CategoryMappingProfile));
+builder.Services.AddAutoMapper(typeof(Mappings));
 builder.Services.AddAutoMapper(typeof(IncomeMappingProfile));
 builder.Services.AddAutoMapper(typeof(ExpenseMappingProfile));
 builder.Services.AddAutoMapper(typeof(GoalMappingProfile));
@@ -46,13 +47,13 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
 builder.Services.AddScoped<IIncomeRepository, IncomeRepository>();
 builder.Services.AddScoped<IGoalRepository, GoalRepository>();
-builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+//builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 // ================= SERVICES =================
 builder.Services.AddScoped<IFamilyService, FamilyService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IExpenseService, ExpenseService>();
 builder.Services.AddScoped<IIncomeService, IncomeService>();
-builder.Services.AddScoped<ICategoryService, CategoryService>();
+//builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IGoalService, GoalService>();
 builder.Services.AddScoped<IRegistrationService, RegistrationService>();
 builder.Services.AddScoped<MonthlyReportService>();
@@ -66,9 +67,12 @@ builder.Services.AddScoped<MessageRouter>();
 builder.Services.AddScoped<StartHandler>();
 builder.Services.AddScoped<RegistrationHandler>();
 builder.Services.AddScoped<ExpenseHandler>();
+builder.Services.AddScoped<IncomeHandler>();
+builder.Services.AddScoped<ReportHandler>();
 
 builder.Services.AddSingleton<UserStateService>();
 builder.Services.AddSingleton<TempExpenseStorage>();
+builder.Services.AddSingleton<TempIncomeStorage>();
 
 var app = builder.Build();
 

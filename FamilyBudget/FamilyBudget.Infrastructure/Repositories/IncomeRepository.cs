@@ -58,7 +58,9 @@ namespace FamilyBudget.Infrastructure.Repositories
         {
             var incomeEntities = await _context.Incomes
                 .AsNoTracking()
-                .Where(e => e.FamilyId == familyId && e.Date >= startDate && e.Date <= endDate)
+                .Where(e => e.FamilyId == familyId
+                    && e.Date >= startDate
+                    && e.Date < endDate)
                 .ToListAsync();
 
             return _mapper.Map<List<Income>>(incomeEntities);

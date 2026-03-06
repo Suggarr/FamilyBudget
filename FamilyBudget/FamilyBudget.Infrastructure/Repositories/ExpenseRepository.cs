@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using CSharpFunctionalExtensions;
+using FamilyBudget.Core.Enums;
 using FamilyBudget.Core.Interfaces;
 using FamilyBudget.Core.Models;
 using FamilyBudget.Infrastructure.Entities;
@@ -47,7 +48,9 @@ namespace FamilyBudget.Infrastructure.Repositories
         {
             var expenseEntities = await _context.Expenses
                 .AsNoTracking()
-                .Where(e => e.FamilyId == familyId && e.Date >= startDate && e.Date <= endDate)
+                .Where(e => e.FamilyId == familyId
+                    && e.Date >= startDate
+                    && e.Date < endDate)
                 .ToListAsync();
 
             return _mapper.Map<List<Expense>>(expenseEntities);
@@ -75,7 +78,7 @@ namespace FamilyBudget.Infrastructure.Repositories
             return id;
         }
 
-        public async Task<Guid> UpdateAsync(Guid id, decimal amount, string description, DateTime date, Guid categoryId)
+        public async Task<Guid> UpdateAsync(Guid id, decimal amount, string description, DateTime date, ExpenseCategory category)
         {
             await _context.Expenses
                 .Where(e => e.Id == id)
@@ -83,7 +86,7 @@ namespace FamilyBudget.Infrastructure.Repositories
                     .SetProperty(e => e.Amount, amount)
                     .SetProperty(e => e.Description, description)
                     .SetProperty(e => e.Date, date)
-                    .SetProperty(e => e.CategoryId, categoryId));
+                    .SetProperty(e => e.Category, category));
 
             return id;
         }
