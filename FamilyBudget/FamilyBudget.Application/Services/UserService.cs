@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FamilyBudget.Application.Interfaces;
 using FamilyBudget.Core.Dtos.User;
 using FamilyBudget.Core.Interfaces;
 using FamilyBudget.Core.Models;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace FamilyBudget.Application.Services
 {
-    public class UserService
+    public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
@@ -24,7 +25,7 @@ namespace FamilyBudget.Application.Services
         public async Task<Guid> AddUserAsync(CreateUserDto createUserDto)
         {
             var userResult = User.Create(
-                Guid.NewGuid(), 
+                Guid.NewGuid(),
                 createUserDto.FamilyId,
                 createUserDto.Name,
                 createUserDto.TelegramId

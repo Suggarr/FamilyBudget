@@ -6,7 +6,8 @@ namespace FamilyBudget.Core.Interfaces
     {
         Task<Guid> AddAsync(Goal goal);
         Task<IEnumerable<Goal>> GetByFamilyIdAsync(Guid familyId);
-        Task<Guid> UpdateAsync(Guid id, string title, decimal targetAmount, decimal currentAmount);
+        Task UpdateAsync(Goal goal);
+        Task<Goal?> GetByIdAsync(Guid id);
         Task<Guid> DeleteAsync(Guid id);
     }
 }

@@ -1,0 +1,12 @@
+﻿using FamilyBudget.Core.Dtos.User;
+
+namespace FamilyBudget.Application.Interfaces
+{
+    public interface IUserService
+    {
+        Task<Guid> AddUserAsync(CreateUserDto createUserDto);
+        Task DeleteAsync(Guid id);
+        Task<List<UserDto>> GetByFamilyIdAsync(Guid familyId);
+        Task<UserDto?> GetByTelegramIdAsync(long telegramId);
+    }
+}

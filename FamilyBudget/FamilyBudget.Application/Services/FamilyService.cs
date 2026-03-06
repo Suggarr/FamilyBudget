@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using CSharpFunctionalExtensions;
+using FamilyBudget.Application.Interfaces;
 using FamilyBudget.Core.Dtos.Family;
 using FamilyBudget.Core.Dtos.User;
 using FamilyBudget.Core.Interfaces;
@@ -12,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace FamilyBudget.Application.Services
 {
-    public class FamilyService
+    public class FamilyService : IFamilyService
     {
         private readonly IFamilyRepository _familyRepository;
         private readonly IMapper _mapper;

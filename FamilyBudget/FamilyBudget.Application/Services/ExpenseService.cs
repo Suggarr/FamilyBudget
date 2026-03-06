@@ -2,6 +2,7 @@
 using FamilyBudget.Core.Dtos.Expense;
 using FamilyBudget.Core.Interfaces;
 using FamilyBudget.Core.Models;
+using FamilyBudget.Infrastructure.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace FamilyBudget.Application.Services
 {
-    public class ExpenseService
+    public class ExpenseService : IExpenseService
     {
         private readonly IExpenseRepository _expenseRepository;
         private readonly IMapper _mapper;

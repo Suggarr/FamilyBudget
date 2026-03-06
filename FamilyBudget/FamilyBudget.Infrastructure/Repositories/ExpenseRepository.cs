@@ -75,7 +75,6 @@ namespace FamilyBudget.Infrastructure.Repositories
             return id;
         }
 
-
         public async Task<Guid> UpdateAsync(Guid id, decimal amount, string description, DateTime date, Guid categoryId)
         {
             await _context.Expenses

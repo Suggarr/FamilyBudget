@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using FamilyBudget.Application.Dtos.Goal;
+using FamilyBudget.Application.Interfaces;
 using FamilyBudget.Core.Interfaces;
 using FamilyBudget.Core.Models;
 using System;
@@ -10,14 +11,13 @@ using System.Threading.Tasks;
 
 namespace FamilyBudget.Application.Services
 {
-    public class GoalService
+    public class GoalService : IGoalService
     {
         private readonly IGoalRepository _goalRepository;
-        private readonly IMapper _mapper;
-        public GoalService(IGoalRepository goalRepository, IMapper mapper)
+
+        public GoalService(IGoalRepository goalRepository)
         {
             _goalRepository = goalRepository;
-            _mapper = mapper;
         }
 
         public async Task<Guid> CreateAsync(CreateGoalDto dto)
@@ -53,9 +53,24 @@ namespace FamilyBudget.Application.Services
             )).ToList();
         }
 
+        public async Task AddMoneyAsync(Guid id, decimal amount)
+        {
+            var goal = await _goalRepository.GetByIdAsync(id) ?? throw new Exception("Goal not found");
+            var addMoneyResult = goal.AddMoney(amount);
+
+            if (addMoneyResult.IsFailure)
+            {
+                throw new Exception(addMoneyResult.Error);
+            }
+
+            await _goalRepository.UpdateAsync(goal);
+        }
+
         public async Task DeleteAsync(Guid id)
         {
             await _goalRepository.DeleteAsync(id);
         }
+
+
     }
 }

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using FamilyBudget.Application.Dtos.Income;
+using FamilyBudget.Application.Interfaces;
 using FamilyBudget.Core.Interfaces;
 using FamilyBudget.Core.Models;
 using System;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace FamilyBudget.Application.Services
 {
-    public class IncomeService
+    public class IncomeService : IIncomeService
     {
         private readonly IIncomeRepository _incomeRepository;
         private readonly IMapper _mapper;

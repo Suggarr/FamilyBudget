@@ -20,7 +20,7 @@ namespace FamilyBudget.Infrastructure
         //public DbSet<ReceiptEntity> Receipts { get; set; }
         public DbSet<GoalEntity> Goals { get; set; }
         public DbSet<IncomeEntity> Incomes { get; set; }
-        //public DbSet<CategoryEntity> Categories { get; set; }
+        public DbSet<CategoryEntity> Categories { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

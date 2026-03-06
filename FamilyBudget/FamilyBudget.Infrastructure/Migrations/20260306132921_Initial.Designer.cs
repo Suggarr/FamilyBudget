@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FamilyBudget.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260226194735_Initial")]
+    [Migration("20260306132921_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -25,7 +25,7 @@ namespace FamilyBudget.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("FamilyBudgetBot.Core.Entities.Category", b =>
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.CategoryEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -47,7 +47,7 @@ namespace FamilyBudget.Infrastructure.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("FamilyBudgetBot.Core.Entities.Expense", b =>
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.ExpenseEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -85,7 +85,7 @@ namespace FamilyBudget.Infrastructure.Migrations
                     b.ToTable("Expenses");
                 });
 
-            modelBuilder.Entity("FamilyBudgetBot.Core.Entities.Family", b =>
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.FamilyEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -101,7 +101,7 @@ namespace FamilyBudget.Infrastructure.Migrations
                     b.ToTable("Families");
                 });
 
-            modelBuilder.Entity("FamilyBudgetBot.Core.Entities.Goal", b =>
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.GoalEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -130,7 +130,7 @@ namespace FamilyBudget.Infrastructure.Migrations
                     b.ToTable("Goals");
                 });
 
-            modelBuilder.Entity("FamilyBudgetBot.Core.Entities.Income", b =>
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.IncomeEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -163,40 +163,7 @@ namespace FamilyBudget.Infrastructure.Migrations
                     b.ToTable("Incomes");
                 });
 
-            modelBuilder.Entity("FamilyBudgetBot.Core.Entities.Receipt", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("FamilyId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("FilePath")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<bool>("IsProcessed")
-                        .HasColumnType("boolean");
-
-                    b.Property<decimal?>("TotalAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FamilyId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Receipts");
-                });
-
-            modelBuilder.Entity("FamilyBudgetBot.Core.Entities.User", b =>
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.UserEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -223,9 +190,9 @@ namespace FamilyBudget.Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("FamilyBudgetBot.Core.Entities.Category", b =>
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.CategoryEntity", b =>
                 {
-                    b.HasOne("FamilyBudgetBot.Core.Entities.Family", "Family")
+                    b.HasOne("FamilyBudget.Infrastructure.Entities.FamilyEntity", "Family")
                         .WithMany("Categories")
                         .HasForeignKey("FamilyId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -234,21 +201,21 @@ namespace FamilyBudget.Infrastructure.Migrations
                     b.Navigation("Family");
                 });
 
-            modelBuilder.Entity("FamilyBudgetBot.Core.Entities.Expense", b =>
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.ExpenseEntity", b =>
                 {
-                    b.HasOne("FamilyBudgetBot.Core.Entities.Category", "Category")
+                    b.HasOne("FamilyBudget.Infrastructure.Entities.CategoryEntity", "Category")
                         .WithMany("Expenses")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("FamilyBudgetBot.Core.Entities.Family", "Family")
+                    b.HasOne("FamilyBudget.Infrastructure.Entities.FamilyEntity", "Family")
                         .WithMany("Expenses")
                         .HasForeignKey("FamilyId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("FamilyBudgetBot.Core.Entities.User", "User")
+                    b.HasOne("FamilyBudget.Infrastructure.Entities.UserEntity", "User")
                         .WithMany("Expenses")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -261,9 +228,9 @@ namespace FamilyBudget.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("FamilyBudgetBot.Core.Entities.Goal", b =>
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.GoalEntity", b =>
                 {
-                    b.HasOne("FamilyBudgetBot.Core.Entities.Family", "Family")
+                    b.HasOne("FamilyBudget.Infrastructure.Entities.FamilyEntity", "Family")
                         .WithMany("Goals")
                         .HasForeignKey("FamilyId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -272,15 +239,15 @@ namespace FamilyBudget.Infrastructure.Migrations
                     b.Navigation("Family");
                 });
 
-            modelBuilder.Entity("FamilyBudgetBot.Core.Entities.Income", b =>
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.IncomeEntity", b =>
                 {
-                    b.HasOne("FamilyBudgetBot.Core.Entities.Family", "Family")
+                    b.HasOne("FamilyBudget.Infrastructure.Entities.FamilyEntity", "Family")
                         .WithMany("Incomes")
                         .HasForeignKey("FamilyId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("FamilyBudgetBot.Core.Entities.User", "User")
+                    b.HasOne("FamilyBudget.Infrastructure.Entities.UserEntity", "User")
                         .WithMany("Incomes")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -291,28 +258,9 @@ namespace FamilyBudget.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("FamilyBudgetBot.Core.Entities.Receipt", b =>
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.UserEntity", b =>
                 {
-                    b.HasOne("FamilyBudgetBot.Core.Entities.Family", "Family")
-                        .WithMany()
-                        .HasForeignKey("FamilyId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("FamilyBudgetBot.Core.Entities.User", "User")
-                        .WithMany("Receipts")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Family");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("FamilyBudgetBot.Core.Entities.User", b =>
-                {
-                    b.HasOne("FamilyBudgetBot.Core.Entities.Family", "Family")
+                    b.HasOne("FamilyBudget.Infrastructure.Entities.FamilyEntity", "Family")
                         .WithMany("Users")
                         .HasForeignKey("FamilyId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -321,12 +269,12 @@ namespace FamilyBudget.Infrastructure.Migrations
                     b.Navigation("Family");
                 });
 
-            modelBuilder.Entity("FamilyBudgetBot.Core.Entities.Category", b =>
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.CategoryEntity", b =>
                 {
                     b.Navigation("Expenses");
                 });
 
-            modelBuilder.Entity("FamilyBudgetBot.Core.Entities.Family", b =>
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.FamilyEntity", b =>
                 {
                     b.Navigation("Categories");
 
@@ -339,13 +287,11 @@ namespace FamilyBudget.Infrastructure.Migrations
                     b.Navigation("Users");
                 });
 
-            modelBuilder.Entity("FamilyBudgetBot.Core.Entities.User", b =>
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.UserEntity", b =>
                 {
                     b.Navigation("Expenses");
 
                     b.Navigation("Incomes");
-
-                    b.Navigation("Receipts");
                 });
 #pragma warning restore 612, 618
         }

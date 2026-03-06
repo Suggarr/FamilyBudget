@@ -17,6 +17,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Элементы решен
 		..\docker-compose.yml = ..\docker-compose.yml
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FamilyBudget.Telegram", "FamilyBudget.Telegram\FamilyBudget.Telegram.csproj", "{3D0D7D56-94FC-40A8-A6DD-B2CA75428F6C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{0FFB183E-D1F4-4AF7-8460-CE34F113811D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0FFB183E-D1F4-4AF7-8460-CE34F113811D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0FFB183E-D1F4-4AF7-8460-CE34F113811D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D0D7D56-94FC-40A8-A6DD-B2CA75428F6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D0D7D56-94FC-40A8-A6DD-B2CA75428F6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D0D7D56-94FC-40A8-A6DD-B2CA75428F6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D0D7D56-94FC-40A8-A6DD-B2CA75428F6C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

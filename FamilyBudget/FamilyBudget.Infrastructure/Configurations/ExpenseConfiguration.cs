@@ -30,10 +30,10 @@ namespace FamilyBudget.Infrastructure.Configurations
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            //builder.HasOne(e => e.Category)
-            //    .WithMany(e => e.Expenses)
-            //    .HasForeignKey(e => e.CategoryId)
-            //    .OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne(e => e.Category)
+                .WithMany(e => e.Expenses)
+                .HasForeignKey(e => e.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(e => e.Family)
                 .WithMany(e => e.Expenses)

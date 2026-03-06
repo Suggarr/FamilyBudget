@@ -43,16 +43,20 @@ namespace FamilyBudget.Infrastructure.Repositories
             return goal.Id;
 
         }
-        public async Task<Guid> UpdateAsync(Guid id, string title, decimal targetAmount, decimal currentAmount)
-        {
-            await _context.Goals
-                .Where(g => g.Id == id)
-                .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(g => g.Title, title)
-                    .SetProperty(g => g.TargetAmount, targetAmount)
-                    .SetProperty(g => g.CurrentAmount, currentAmount));
 
-            return id;
+        public async Task<Goal?> GetByIdAsync(Guid id)
+        {
+            var goalEntity = await _context.Goals
+                .AsNoTracking()
+                .FirstOrDefaultAsync(g => g.Id == id);
+
+            return goalEntity is null ? null : _mapper.Map<Goal>(goalEntity);
+        }
+
+        public async Task UpdateAsync(Goal goal)
+        {
+            _context.Goals.Update(_mapper.Map<GoalEntity>(goal));
+            await _context.SaveChangesAsync();
         }
 
         public async Task<Guid> DeleteAsync(Guid id)
