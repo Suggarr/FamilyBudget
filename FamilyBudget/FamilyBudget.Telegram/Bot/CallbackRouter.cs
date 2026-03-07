@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace FamilyBudget.Telegram.Bot
 {
@@ -29,6 +30,11 @@ namespace FamilyBudget.Telegram.Bot
         public async Task RouteAsync(ITelegramBotClient bot, CallbackQuery query)
         {
             await bot.AnswerCallbackQuery(query.Id);
+
+            if (query.Data!.StartsWith("report:"))
+            {
+                await _reportHandler.HandleMonth(bot, query);
+            }
 
             switch (query.Data)
             {

@@ -41,10 +41,6 @@ public class BotHandler
         if (update.Type == UpdateType.CallbackQuery)
             await _callbackRouter.RouteAsync(bot, update.CallbackQuery!);
 
-        if (update.CallbackQuery?.Data?.StartsWith("report:") == true)
-        {
-            await _reportHandler.HandleMonth(bot, update.CallbackQuery);
-        }
     }
 
     public Task HandleErrorAsync(
