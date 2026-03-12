@@ -8,6 +8,6 @@ namespace FamilyBudget.Core.Interfaces
         Task<Guid> DeleteAsync(Guid id);
         Task<List<User>> GetByFamilyIdAsync(Guid familyId);
         Task<User?> GetByTelegramIdAsync(long telegramId);
-        Task<Guid> UpdateAsync(Guid id, string name);
+        Task UpdateAsync(User user);
     }
 }

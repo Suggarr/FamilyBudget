@@ -65,14 +65,10 @@ namespace FamilyBudget.Infrastructure.Repositories
             return id;
         }
 
-        public async Task<Guid> UpdateAsync(Guid id, string name)
+        public async Task UpdateAsync(User user)
         {
-            await _context.Users
-                .Where(u => u.Id == id)
-                .ExecuteUpdateAsync(s => s
-                    .SetProperty(u => u.Name, name));
-
-            return id;
+            _context.Users.Update(_mapper.Map<UserEntity>(user));
+            await _context.SaveChangesAsync();
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using FamilyBudget.Infrastructure.Entities;
+﻿using FamilyBudget.Core.Models;
+using FamilyBudget.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -19,6 +20,7 @@ namespace FamilyBudget.Infrastructure
         public DbSet<ExpenseEntity> Expenses { get; set; }
         public DbSet<GoalEntity> Goals { get; set; }
         public DbSet<IncomeEntity> Incomes { get; set; }
+        public DbSet<FamilyInviteEntity> FamilyInvites { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

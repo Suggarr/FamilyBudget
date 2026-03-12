@@ -14,10 +14,10 @@ public class User
         TelegramId = telegramId;
     }
 
-    public Guid Id { get; }
-    public Guid FamilyId { get; }
-    public string Name { get; }
-    public long TelegramId { get; }
+    public Guid Id { get; private set; }
+    public Guid FamilyId { get; private set; }
+    public string Name { get; private set; }
+    public long TelegramId { get; private set; }
 
     public static Result<User> Create(Guid id, Guid familyId, string name, long telegramId)
     {
@@ -33,5 +33,10 @@ public class User
 
         var user = new User(id, familyId, name.Trim(), telegramId);
         return Result.Success(user);
+    }
+
+    public void SetFamily(Guid familyId)
+    {
+        FamilyId = familyId;
     }
 }

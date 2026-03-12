@@ -57,5 +57,31 @@ namespace FamilyBudget.Application.Services
         {
             await _userRepository.DeleteAsync(id);
         }
+
+        public async Task JoinFamilyByInvite(long telegramId, string username, Guid familyId)
+        {
+            var user = await _userRepository.GetByTelegramIdAsync(telegramId);
+
+            if (user != null)
+            {
+                user.SetFamily(familyId);
+                await _userRepository.UpdateAsync(user);
+                return;
+            }
+
+            var userResult = User.Create(
+                Guid.NewGuid(),
+                familyId,
+                username,
+                telegramId
+            );
+
+            if (userResult.IsFailure)
+            {
+                throw new Exception(userResult.Error);
+            }
+
+            await _userRepository.AddAsync(userResult.Value);
+        }
     }
 }
