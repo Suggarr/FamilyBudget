@@ -9,5 +9,6 @@ namespace FamilyBudget.Application.Interfaces
         Task<List<UserDto>> GetByFamilyIdAsync(Guid familyId);
         Task<UserDto?> GetByTelegramIdAsync(long telegramId);
         Task JoinFamilyByInvite(long telegramId, string username, Guid familyId);
+        Task LeaveFamily(long telegramId);
     }
 }

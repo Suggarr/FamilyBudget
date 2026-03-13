@@ -43,17 +43,19 @@ builder.Services.AddAutoMapper(typeof(GoalMappingProfile));
 
 // ================= REPOSITORIES =================
 builder.Services.AddScoped<IFamilyRepository, FamilyRepository>();
+builder.Services.AddScoped<IFamilyInviteRepository, FamilyInviteRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
 builder.Services.AddScoped<IIncomeRepository, IncomeRepository>();
 builder.Services.AddScoped<IGoalRepository, GoalRepository>();
-//builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+
 // ================= SERVICES =================
 builder.Services.AddScoped<IFamilyService, FamilyService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IExpenseService, ExpenseService>();
 builder.Services.AddScoped<IIncomeService, IncomeService>();
-//builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<FamilyInviteService>();
+builder.Services.AddScoped<IFamilyInviteService, FamilyInviteService>();
 builder.Services.AddScoped<IGoalService, GoalService>();
 builder.Services.AddScoped<IRegistrationService, RegistrationService>();
 builder.Services.AddScoped<MonthlyReportService>();
@@ -69,6 +71,8 @@ builder.Services.AddScoped<RegistrationHandler>();
 builder.Services.AddScoped<ExpenseHandler>();
 builder.Services.AddScoped<IncomeHandler>();
 builder.Services.AddScoped<ReportHandler>();
+builder.Services.AddScoped<InviteHandler>();
+builder.Services.AddScoped<FamilyHandler>();
 
 builder.Services.AddSingleton<UserStateService>();
 builder.Services.AddSingleton<TempExpenseStorage>();

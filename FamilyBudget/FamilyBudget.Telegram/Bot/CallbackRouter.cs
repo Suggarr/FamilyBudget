@@ -1,5 +1,6 @@
 ﻿using FamilyBudget.Core.Enums;
 using FamilyBudget.Telegram.Handlers;
+using FamilyBudget.Telegram.Keyboards;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,14 +18,18 @@ namespace FamilyBudget.Telegram.Bot
         private readonly RegistrationHandler _registrationHandler;
         private readonly IncomeHandler _incomeHandler;
         private readonly ReportHandler _reportHandler;
+        private readonly InviteHandler _inviteHandler;
+        private readonly FamilyHandler _familyHandler;
 
-        public CallbackRouter(
-            ExpenseHandler expenseHandler, RegistrationHandler registrationHandler, IncomeHandler incomeHandler, ReportHandler reportHandler)
+        public CallbackRouter(ExpenseHandler expenseHandler, RegistrationHandler registrationHandler, IncomeHandler incomeHandler, ReportHandler reportHandler, 
+            InviteHandler inviteHandler, FamilyHandler familyHandler)
         {
             _expenseHandler = expenseHandler;
             _registrationHandler = registrationHandler;
             _incomeHandler = incomeHandler;
             _reportHandler = reportHandler;
+            _inviteHandler = inviteHandler;
+            _familyHandler = familyHandler;
         }
 
         public async Task RouteAsync(ITelegramBotClient bot, CallbackQuery query)
@@ -76,6 +81,28 @@ namespace FamilyBudget.Telegram.Bot
 
                 case "create_family":
                     await _registrationHandler.StartAsync(bot, query);
+                    break;
+
+                case "📩 Пригласить участника":
+                    await _inviteHandler.CreateInvite(bot, query);
+                    break;
+                case "family_invite":
+                    await _inviteHandler.CreateInvite(bot, query);
+                    break;
+
+                case "family_members":
+                    await _familyHandler.ShowMembers(bot, query);
+                    break;
+
+                case "family_leave":
+                    await _familyHandler.LeaveFamily(bot, query);
+                    break;
+
+                case "family":
+                    await bot.SendMessage(
+                        query.Message!.Chat.Id,
+                        "👨‍👩‍👧 Семья",
+                        replyMarkup: KeyboardFactory.FamilyMenu());
                     break;
             }
         }

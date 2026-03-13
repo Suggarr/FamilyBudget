@@ -6,8 +6,8 @@ public class UserEntity
 
     public Guid Id { get; set; }
 
-    public Guid FamilyId { get; set;}
-    public FamilyEntity Family { get; set; } = null!;
+    public Guid? FamilyId { get; set;}
+    public FamilyEntity? Family { get; set; } = null!;
 
     public string Name { get; set; } = string.Empty;
     public long TelegramId { get; set; }

@@ -64,15 +64,18 @@ namespace FamilyBudget.Application.Services
 
             if (user != null)
             {
-                user.SetFamily(familyId);
-                await _userRepository.UpdateAsync(user);
-                return;
+                if(user.FamilyId != familyId)
+                {
+                    user.SetFamily(familyId);
+                    await _userRepository.UpdateAsync(user);
+                    return;
+                }
             }
 
             var userResult = User.Create(
                 Guid.NewGuid(),
                 familyId,
-                username,
+                username ??= "Unknown",
                 telegramId
             );
 
@@ -82,6 +85,18 @@ namespace FamilyBudget.Application.Services
             }
 
             await _userRepository.AddAsync(userResult.Value);
+        }
+
+        public async Task LeaveFamily(long telegramId)
+        {
+            var user = await _userRepository.GetByTelegramIdAsync(telegramId);
+
+            if (user == null)
+                return;
+
+            user.LeaveFamily();
+
+            await _userRepository.UpdateAsync(user);
         }
     }
 }

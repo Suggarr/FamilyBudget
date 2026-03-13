@@ -48,5 +48,24 @@ namespace FamilyBudget.Telegram.Keyboards
                 }
             });
         }
+        public static InlineKeyboardMarkup FamilyMenu()
+        {
+            return new InlineKeyboardMarkup(new[]
+            {
+                new[]
+                {
+                    InlineKeyboardButton.WithCallbackData("📩 Пригласить", "family_invite"),
+                    InlineKeyboardButton.WithCallbackData("👥 Участники", "family_members")
+                },
+                new[]
+                {
+                    InlineKeyboardButton.WithCallbackData("🚪 Покинуть семью", "family_leave")
+                },
+                new[]
+                {
+                    InlineKeyboardButton.WithCallbackData("⬅️ Назад", "main_menu")
+                }
+            });
+        }
     }
 }

@@ -24,10 +24,10 @@ namespace FamilyBudget.Telegram.Keyboards
             {
                 buttons.Add(new[]
                 {
-                InlineKeyboardButton.WithCallbackData(months[i], $"report:{year}:{i+1}"),
-                InlineKeyboardButton.WithCallbackData(months[i+1], $"report:{year}:{i+2}"),
-                InlineKeyboardButton.WithCallbackData(months[i+2], $"report:{year}:{i+3}")
-            });
+                    InlineKeyboardButton.WithCallbackData(months[i], $"report:{year}:{i+1}"),
+                    InlineKeyboardButton.WithCallbackData(months[i+1], $"report:{year}:{i+2}"),
+                    InlineKeyboardButton.WithCallbackData(months[i+2], $"report:{year}:{i+3}")
+                });
             }
 
             return new InlineKeyboardMarkup(buttons);
