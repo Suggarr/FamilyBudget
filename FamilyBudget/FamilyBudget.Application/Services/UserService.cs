@@ -58,6 +58,22 @@ namespace FamilyBudget.Application.Services
             await _userRepository.DeleteAsync(id);
         }
 
+        /// <summary>
+        /// Устанавливает семью для существующего пользователя (используется когда пользователь входит по приглашению)
+        /// </summary>
+        public async Task SetFamilyForUserAsync(long telegramId, string newName, Guid familyId)
+        {
+            var user = await _userRepository.GetByTelegramIdAsync(telegramId);
+
+            if (user == null)
+            {
+                throw new Exception($"User with telegramId {telegramId} not found");
+            }
+
+            // Обновляем в репозитории через ExecuteUpdateAsync
+            await _userRepository.UpdateAsync(user);
+        }
+
         public async Task JoinFamilyByInvite(long telegramId, string username, Guid familyId)
         {
             var user = await _userRepository.GetByTelegramIdAsync(telegramId);

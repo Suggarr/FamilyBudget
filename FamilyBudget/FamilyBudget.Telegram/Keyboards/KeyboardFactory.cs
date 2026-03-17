@@ -21,7 +21,7 @@ namespace FamilyBudget.Telegram.Keyboards
             new[]
             {
                 InlineKeyboardButton.WithCallbackData("📊 Отчет", "report"),
-                InlineKeyboardButton.WithCallbackData("🎯 Цели", "goals"),
+                //InlineKeyboardButton.WithCallbackData("🎯 Цели", "goals"),
                 InlineKeyboardButton.WithCallbackData("👨‍👩‍👧 Семья", "family")
             }
         });

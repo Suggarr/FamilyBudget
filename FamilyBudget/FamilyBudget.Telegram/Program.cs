@@ -77,6 +77,7 @@ builder.Services.AddScoped<FamilyHandler>();
 builder.Services.AddSingleton<UserStateService>();
 builder.Services.AddSingleton<TempExpenseStorage>();
 builder.Services.AddSingleton<TempIncomeStorage>();
+builder.Services.AddSingleton<TempInviteStorage>();
 
 var app = builder.Build();
 

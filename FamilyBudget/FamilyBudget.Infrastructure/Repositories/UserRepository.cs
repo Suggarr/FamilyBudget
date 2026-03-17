@@ -67,8 +67,12 @@ namespace FamilyBudget.Infrastructure.Repositories
 
         public async Task UpdateAsync(User user)
         {
-            _context.Users.Update(_mapper.Map<UserEntity>(user));
-            await _context.SaveChangesAsync();
+            await _context.Users
+                .Where(u => u.Id == user.Id)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(u => u.Name, u => user.Name)
+                    .SetProperty(u => u.FamilyId, u => user.FamilyId)
+                    .SetProperty(u => u.TelegramId, u => user.TelegramId));
         }
     }
 }

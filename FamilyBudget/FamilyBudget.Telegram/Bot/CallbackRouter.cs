@@ -83,6 +83,18 @@ namespace FamilyBudget.Telegram.Bot
                     await _registrationHandler.StartAsync(bot, query);
                     break;
 
+                case "enter_invite_code":
+                    await _inviteHandler.EnterInviteCodeAsync(bot, query);
+                    break;
+
+                case "keep_name":
+                    await _registrationHandler.HandleKeepNameAsync(bot, query);
+                    break;
+
+                case "change_name":
+                    await _registrationHandler.HandleChangeNameAsync(bot, query);
+                    break;
+
                 case "📩 Пригласить участника":
                     await _inviteHandler.CreateInvite(bot, query);
                     break;
@@ -103,6 +115,13 @@ namespace FamilyBudget.Telegram.Bot
                         query.Message!.Chat.Id,
                         "👨‍👩‍👧 Семья",
                         replyMarkup: KeyboardFactory.FamilyMenu());
+                    break;
+
+                case "main_menu":
+                    await bot.SendMessage(
+                        query.Message!.Chat.Id,
+                        "Главное меню",
+                        replyMarkup: KeyboardFactory.MainMenu());
                     break;
             }
         }

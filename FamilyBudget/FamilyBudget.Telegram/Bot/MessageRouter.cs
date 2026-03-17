@@ -1,6 +1,5 @@
 ﻿using FamilyBudget.Application.Interfaces;
 using FamilyBudget.Application.Services;
-using FamilyBudget.Core.Dtos.Expense;
 using FamilyBudget.Core.Enums;
 using FamilyBudget.Telegram.Handlers;
 using FamilyBudget.Telegram.Keyboards;
@@ -18,6 +17,7 @@ namespace FamilyBudget.Telegram.Bot
         private readonly RegistrationHandler _registrationHandler;
         private readonly IUserService _userService; 
         private readonly IncomeHandler _incomeHandler;
+        private readonly InviteHandler _inviteHandler;
 
         public MessageRouter(
             UserStateService state,
@@ -25,7 +25,8 @@ namespace FamilyBudget.Telegram.Bot
             IExpenseService expenseService,
             RegistrationHandler registrationHandler,
             IUserService userService,
-            IncomeHandler incomeHandler)
+            IncomeHandler incomeHandler,
+            InviteHandler inviteHandler)
         {
             _state = state;
             _storage = storage;
@@ -33,18 +34,31 @@ namespace FamilyBudget.Telegram.Bot
             _registrationHandler = registrationHandler;
             _userService = userService;
             _incomeHandler = incomeHandler;
+            _inviteHandler = inviteHandler;
         }
 
         public async Task RouteAsync(
             ITelegramBotClient bot,
             Message message)
         {
-            await _registrationHandler.HandleMessageAsync(bot, message);
-
             var userId = message.From!.Id;
             var userState = _state.Get(userId);
-            switch (_state.Get(message.From!.Id))
+
+            // Обрабатываем состояния регистрации
+            if (userState == UserState.WaitingForFamilyName ||
+                userState == UserState.WaitingForUserName ||
+                userState == UserState.WaitingForInviteUserName)
             {
+                await _registrationHandler.HandleMessageAsync(bot, message);
+                return;
+            }
+            switch (userState)
+            {
+                // Обрабатываем ввод кода приглашения
+                case UserState.WaitingForInviteCode:
+                    await _inviteHandler.HandleInviteCodeMessageAsync(bot, message);
+                    return;
+
                 case UserState.WaitingForExpenseAmount:
 
                     if (!decimal.TryParse(message.Text, out var amount))

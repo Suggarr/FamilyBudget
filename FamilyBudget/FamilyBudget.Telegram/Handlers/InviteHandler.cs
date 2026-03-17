@@ -1,5 +1,6 @@
 ﻿using FamilyBudget.Application.Interfaces;
 using FamilyBudget.Application.Services;
+using FamilyBudget.Telegram.State;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,13 +15,22 @@ namespace FamilyBudget.Telegram.Handlers
     {
         private readonly FamilyInviteService _inviteService;
         private readonly IUserService _userService;
+        private readonly UserStateService _stateService;
+        private readonly TempInviteStorage _inviteStorage;
+        private readonly RegistrationHandler _registrationHandler;
 
         public InviteHandler(
             FamilyInviteService inviteService,
-            IUserService userService)
+            IUserService userService,
+            UserStateService stateService,
+            TempInviteStorage inviteStorage,
+            RegistrationHandler registrationHandler)
         {
             _inviteService = inviteService;
             _userService = userService;
+            _stateService = stateService;
+            _inviteStorage = inviteStorage;
+            _registrationHandler = registrationHandler;
         }
 
         // Existing Message-based API (kept for compatibility)
@@ -91,14 +101,99 @@ namespace FamilyBudget.Telegram.Handlers
                 return;
             }
 
+            var existingUser = await _userService.GetByTelegramIdAsync(message.From!.Id);
+
+            // Если пользователь уже существует в БД
+            if (existingUser != null)
+            {
+                // Сохраняем данные приглашения
+                _inviteStorage.SaveFamilyId(message.From.Id, familyId.Value);
+
+                // Запускаем сценарий с опцией смены имени
+                await _registrationHandler.StartInviteFlowAsync(
+                    bot,
+                    message.From.Id,
+                    message.Chat.Id,
+                    existingUser.Name);
+
+                return;
+            }
+
+            // Новый пользователь - создаем с именем из профиля
+            var userName = message.From.Username ?? message.From.FirstName ?? "Unknown";
+
             await _userService.JoinFamilyByInvite(
-                message.From!.Id,
-                message.From.Username ?? "Unknown",
+                message.From.Id,
+                userName,
                 familyId.Value);
 
             await bot.SendMessage(
                 message.Chat.Id,
-                "✅ Вы присоединились к семье!");
+                "✅ Вы присоединились к семье!",
+                replyMarkup: Keyboards.KeyboardFactory.MainMenu());
+        }
+
+        public async Task EnterInviteCodeAsync(
+            ITelegramBotClient bot,
+            CallbackQuery query)
+        {
+            _stateService.Set(query.From.Id, UserState.WaitingForInviteCode);
+
+            await bot.SendMessage(
+                query.Message!.Chat.Id,
+                "Введите пригласительный код:");
+        }
+
+        public async Task HandleInviteCodeMessageAsync(
+            ITelegramBotClient bot,
+            Message message)
+        {
+            var telegramId = message.From!.Id;
+
+            var code = message.Text!.Trim();
+
+            var familyId = await _inviteService.UseInvite(code);
+
+            if (familyId == null)
+            {
+                await bot.SendMessage(
+                    message.Chat.Id,
+                    "❌ Код недействителен или истек. Попробуйте снова.");
+                return;
+            }
+
+            var existingUser = await _userService.GetByTelegramIdAsync(telegramId);
+
+            // Если пользователь уже существует в БД
+            if (existingUser != null)
+            {
+                // Сохраняем данные приглашения
+                _inviteStorage.SaveFamilyId(telegramId, familyId.Value);
+
+                // Запускаем сценарий с опцией смены имени
+                await _registrationHandler.StartInviteFlowAsync(
+                    bot,
+                    telegramId,
+                    message.Chat.Id,
+                    existingUser.Name);
+
+                return;
+            }
+
+            // Новый пользователь - создаем с именем из профиля
+            var userName = message.From.Username ?? message.From.FirstName ?? "Unknown";
+
+            await _userService.JoinFamilyByInvite(
+                telegramId,
+                userName,
+                familyId.Value);
+
+            _stateService.Clear(telegramId);
+
+            await bot.SendMessage(
+                message.Chat.Id,
+                "✅ Вы присоединились к семье!",
+                replyMarkup: Keyboards.KeyboardFactory.MainMenu());
         }
     }
 }

@@ -2,6 +2,7 @@
 using FamilyBudget.Telegram.Handlers;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.ReplyMarkups;
 
 public class FamilyHandler
 {
@@ -51,6 +52,7 @@ public class FamilyHandler
 
         await bot.SendMessage(chatId, text);
     }
+
     public async Task LeaveFamily(
         ITelegramBotClient bot,
         CallbackQuery query)
@@ -58,17 +60,18 @@ public class FamilyHandler
         var chatId = query.Message?.Chat.Id ?? query.From.Id;
         await _userService.LeaveFamily(query.From!.Id);
 
+        var keyboard = new InlineKeyboardMarkup(new[]
+        {
+            new[]
+            {
+                InlineKeyboardButton.WithCallbackData("Создать семью", "create_family"),
+                InlineKeyboardButton.WithCallbackData("Войти по коду", "enter_invite_code")
+            }
+        });
+
         await bot.SendMessage(
             chatId,
-            "Вы покинули семью.\nСоздадим новую.");
-
-        // запускаем тот же сценарий регистрации
-        await _registrationHandler.StartAsync(
-            bot,
-            new CallbackQuery
-            {
-                From = query.From,
-                Message = query.Message
-            });
+            "Вы покинули семью. Создайте новую или введите пригласительный код.",
+            replyMarkup: keyboard);
     }
 }
