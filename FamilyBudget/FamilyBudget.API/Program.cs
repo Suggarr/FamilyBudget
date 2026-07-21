@@ -1,45 +1,52 @@
-using FamilyBudget.Application.Interfaces;
-using FamilyBudget.Application.Services;
-using FamilyBudget.Core.Interfaces;
-using FamilyBudget.Infrastructure;
-using FamilyBudget.Infrastructure.Repositories;
+//using FamilyBudget.Application.Interfaces;
+//using FamilyBudget.Application.Services;
+//using FamilyBudget.Core.Interfaces;
+//using FamilyBudget.Infrastructure;
+//using FamilyBudget.Infrastructure.Configuration;
+//using FamilyBudget.Infrastructure.Repositories;
+//using Microsoft.EntityFrameworkCore;
 
-var builder = WebApplication.CreateBuilder(args);
+//EnvironmentFileLoader.Load();
+//var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+//var connectionString = builder.Configuration.GetConnectionString("FamilyBudgetDbContext");
+//if (string.IsNullOrWhiteSpace(connectionString))
+//    throw new InvalidOperationException("ConnectionStrings__FamilyBudgetDbContext is not configured.");
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+//// Add services to the container.
 
-builder.Services.AddDbContext<ApplicationDbContext>();
+//builder.Services.AddControllers();
+//// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+//builder.Services.AddEndpointsApiExplorer();
+//builder.Services.AddSwaggerGen();
 
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+//builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
 
-builder.Services.AddScoped<IFamilyRepository, FamilyRepository>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
-builder.Services.AddScoped<IIncomeRepository, IncomeRepository>();
-builder.Services.AddScoped<IGoalRepository, GoalRepository>();
-builder.Services.AddScoped<IFamilyService, FamilyService>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IExpenseService, ExpenseService>();
-builder.Services.AddScoped<IIncomeService, IncomeService>();
-builder.Services.AddScoped<IGoalService, GoalService>();
-var app = builder.Build();
+//builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+//builder.Services.AddScoped<IFamilyRepository, FamilyRepository>();
+//builder.Services.AddScoped<IUserRepository, UserRepository>();
+//builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
+//builder.Services.AddScoped<IIncomeRepository, IncomeRepository>();
+//builder.Services.AddScoped<IGoalRepository, GoalRepository>();
+//builder.Services.AddScoped<IFamilyService, FamilyService>();
+//builder.Services.AddScoped<IUserService, UserService>();
+//builder.Services.AddScoped<IExpenseService, ExpenseService>();
+//builder.Services.AddScoped<IIncomeService, IncomeService>();
+//builder.Services.AddScoped<IGoalService, GoalService>();
+//var app = builder.Build();
 
-app.UseHttpsRedirection();
+//// Configure the HTTP request pipeline.
+//if (app.Environment.IsDevelopment())
+//{
+//    app.UseSwagger();
+//    app.UseSwaggerUI();
+//}
 
-app.UseAuthorization();
+//app.UseHttpsRedirection();
 
-app.MapControllers();
+//app.UseAuthorization();
 
-app.Run();
+//app.MapControllers();
+
+//app.Run();

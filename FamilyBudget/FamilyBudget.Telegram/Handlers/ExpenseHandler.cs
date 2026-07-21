@@ -46,6 +46,19 @@ namespace FamilyBudget.Telegram.Handlers
                 "💸 Введите сумму расхода:");
         }
 
+        public async Task ShowInputOptionsAsync(
+            ITelegramBotClient bot,
+            CallbackQuery query)
+        {
+            _state.Clear(query.From.Id);
+            _storage.Clear(query.From.Id);
+
+            await bot.SendMessage(
+                query.Message!.Chat.Id,
+                "Как добавить расход?",
+                replyMarkup: KeyboardFactory.ExpenseInputOptions());
+        }
+
         public async Task FinishAsync(
             ITelegramBotClient bot,
             CallbackQuery query,
@@ -58,15 +71,34 @@ namespace FamilyBudget.Telegram.Handlers
 
             var user = await _userService.GetByTelegramIdAsync(userId);
 
+            if (user is null || !user.FamilyId.HasValue)
+            {
+                await bot.SendMessage(query.Message!.Chat.Id, "Пользователь не найден.");
+                return;
+            }
+
             var dto = new CreateExpenseDto(
-                user.FamilyId,
+                user.FamilyId.Value,
                 user.Id,
                 category,
                 amount,
                 description,
                 DateTime.UtcNow);
 
-            await _expenseService.AddAsync(dto);
+            try
+            {
+                await _expenseService.AddAsync(dto);
+            }
+            catch (InvalidOperationException ex) when (ex.Message == "Insufficient funds.")
+            {
+                _state.Clear(userId);
+                _storage.Clear(userId);
+                await bot.SendMessage(
+                    query.Message!.Chat.Id,
+                    $"Недостаточно средств. На вашем счёте: {user.Balance:F2}",
+                    replyMarkup: KeyboardFactory.MainMenu());
+                return;
+            }
 
             _state.Clear(userId);
             _storage.Clear(userId);

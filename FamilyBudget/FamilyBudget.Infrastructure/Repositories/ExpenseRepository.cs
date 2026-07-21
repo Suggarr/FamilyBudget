@@ -44,6 +44,12 @@ namespace FamilyBudget.Infrastructure.Repositories
             return _mapper.Map<List<Expense>>(expenseEntities);
         }
 
+        public async Task<Expense?> GetByIdAsync(Guid id)
+        {
+            var entity = await _context.Expenses.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
+            return entity is null ? null : _mapper.Map<Expense>(entity);
+        }
+
         public async Task<List<Expense>> GetByPeriodAsync(Guid familyId, DateTime startDate, DateTime endDate)
         {
             var expenseEntities = await _context.Expenses

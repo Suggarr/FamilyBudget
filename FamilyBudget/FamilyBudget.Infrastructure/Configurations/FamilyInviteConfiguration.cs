@@ -1,5 +1,4 @@
-﻿using FamilyBudget.Core.Models;
-using FamilyBudget.Infrastructure.Entities;
+﻿using FamilyBudget.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

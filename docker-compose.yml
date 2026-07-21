@@ -5,12 +5,32 @@ services:
     env_file:
       - .env
     ports:
-      - "5433:5432"
+      - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       - familybudget_postgres_data:/var/lib/postgresql/data
     networks:
       - mynetwork 
     restart: always 
+
+  ollama:
+    container_name: familybudget-ollama
+    image: ollama/ollama:latest
+    environment:
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen3.5:4b}
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["ollama serve & server_pid=$$!; until ollama list >/dev/null 2>&1; do sleep 1; done; ollama pull \"$${OLLAMA_MODEL}\"; wait $$server_pid"]
+    ports:
+      - "11434:11434"
+    volumes:
+      - familybudget_ollama_data:/root/.ollama
+    networks:
+      - mynetwork
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
 
 networks:
   mynetwork:
@@ -18,3 +38,4 @@ networks:
 
 volumes:
   familybudget_postgres_data:
+  familybudget_ollama_data:

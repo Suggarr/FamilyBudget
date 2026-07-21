@@ -12,14 +12,14 @@ namespace FamilyBudget.Application.Services
     public class RegistrationService : IRegistrationService
     {
         private readonly IUserRepository _userRepository;
-        private readonly IFamilyRepository _familyRepository;
+        private readonly IFamilyMembershipWriter _membershipWriter;
 
         public RegistrationService(
             IUserRepository userRepository,
-            IFamilyRepository familyRepository)
+            IFamilyMembershipWriter membershipWriter)
         {
             _userRepository = userRepository;
-            _familyRepository = familyRepository;
+            _membershipWriter = membershipWriter;
         }
 
         public async Task<bool> IsRegisteredAsync(long telegramId)
@@ -33,8 +33,13 @@ namespace FamilyBudget.Application.Services
         public async Task RegisterNewFamilyAsync(
             long telegramId,
             string familyName,
-            string userName)
+            string userName,
+            string? telegramUsername)
         {
+            var existingUser = await _userRepository.GetByTelegramIdAsync(telegramId);
+            if (existingUser?.FamilyId is not null)
+                throw new InvalidOperationException("User already belongs to a family.");
+
             var familyResult = Family.Create(
                 Guid.NewGuid(),
                 familyName);
@@ -43,19 +48,32 @@ namespace FamilyBudget.Application.Services
                 throw new Exception(familyResult.Error);
 
             var family = familyResult.Value;
-            await _familyRepository.AddAsync(family);
+
+            if (existingUser is not null)
+            {
+                var joinResult = existingUser.JoinFamily(family.Id, userName);
+                if (joinResult.IsFailure)
+                    throw new InvalidOperationException(joinResult.Error);
+
+                var usernameResult = existingUser.SetTelegramUsername(telegramUsername);
+                if (usernameResult.IsFailure)
+                    throw new InvalidOperationException(usernameResult.Error);
+
+                await _membershipWriter.CreateFamilyAsync(family, existingUser, false);
+                return;
+            }
 
             var userResult = User.Create(
                 Guid.NewGuid(),
                 family.Id,
                 userName,
-                telegramId);
+                telegramId,
+                telegramUsername: telegramUsername);
 
             if (userResult.IsFailure)
                 throw new Exception(userResult.Error);
 
-            var user = userResult.Value;
-            await _userRepository.AddAsync(user);
+            await _membershipWriter.CreateFamilyAsync(family, userResult.Value, true);
         }
     }
 }

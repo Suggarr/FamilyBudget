@@ -1,19 +1,11 @@
-﻿using FamilyBudget.Core.Models;
-using FamilyBudget.Infrastructure.Entities;
+﻿using FamilyBudget.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace FamilyBudget.Infrastructure
 {
     public class ApplicationDbContext : DbContext
     {
-        private readonly IConfiguration _configuration;
-
-        public ApplicationDbContext(IConfiguration configuration)
-        {
-            _configuration = configuration;
-        }
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
         public DbSet<UserEntity> Users { get; set; }
         public DbSet<FamilyEntity> Families { get; set; }
@@ -21,21 +13,15 @@ namespace FamilyBudget.Infrastructure
         public DbSet<GoalEntity> Goals { get; set; }
         public DbSet<IncomeEntity> Incomes { get; set; }
         public DbSet<FamilyInviteEntity> FamilyInvites { get; set; }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseNpgsql(_configuration.GetConnectionString("FamilyBudgetDbContext"))
-                .UseLoggerFactory(CreateLoggerFactory())
-                .EnableSensitiveDataLogging();
-        }
+        public DbSet<SavingsContributionEntity> SavingsContributions { get; set; }
+        public DbSet<SavingsWithdrawalEntity> SavingsWithdrawals { get; set; }
+        public DbSet<ReceiptEntity> Receipts { get; set; }
+        public DbSet<ReceiptItemEntity> ReceiptItems { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
             base.OnModelCreating(modelBuilder);
         }
-
-        public ILoggerFactory CreateLoggerFactory() =>
-            LoggerFactory.Create(builder => { builder.AddConsole(); });
     }
 }

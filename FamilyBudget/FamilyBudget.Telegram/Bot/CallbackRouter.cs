@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Exceptions;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace FamilyBudget.Telegram.Bot
@@ -20,9 +21,12 @@ namespace FamilyBudget.Telegram.Bot
         private readonly ReportHandler _reportHandler;
         private readonly InviteHandler _inviteHandler;
         private readonly FamilyHandler _familyHandler;
+        private readonly InitialBalanceHandler _initialBalanceHandler;
+        private readonly SavingsHandler _savingsHandler;
+        private readonly ReceiptHandler _receiptHandler;
 
         public CallbackRouter(ExpenseHandler expenseHandler, RegistrationHandler registrationHandler, IncomeHandler incomeHandler, ReportHandler reportHandler, 
-            InviteHandler inviteHandler, FamilyHandler familyHandler)
+            InviteHandler inviteHandler, FamilyHandler familyHandler, InitialBalanceHandler initialBalanceHandler, SavingsHandler savingsHandler, ReceiptHandler receiptHandler)
         {
             _expenseHandler = expenseHandler;
             _registrationHandler = registrationHandler;
@@ -30,25 +34,71 @@ namespace FamilyBudget.Telegram.Bot
             _reportHandler = reportHandler;
             _inviteHandler = inviteHandler;
             _familyHandler = familyHandler;
+            _initialBalanceHandler = initialBalanceHandler;
+            _savingsHandler = savingsHandler;
+            _receiptHandler = receiptHandler;
         }
 
         public async Task RouteAsync(ITelegramBotClient bot, CallbackQuery query)
         {
-            await bot.AnswerCallbackQuery(query.Id);
+            try
+            {
+                await bot.AnswerCallbackQuery(query.Id);
+            }
+            catch (ApiRequestException ex) when (ex.ErrorCode == 400 && ex.Message.Contains("query is too old", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
 
             if (query.Data!.StartsWith("report:"))
             {
                 await _reportHandler.HandleMonth(bot, query);
             }
 
+            if (query.Data.StartsWith("receipt_confirm:"))
+            {
+                await _receiptHandler.ConfirmAsync(bot, query);
+                return;
+            }
+
+            if (query.Data.StartsWith("receipt_reject:"))
+            {
+                await _receiptHandler.RejectAsync(bot, query);
+                return;
+            }
+
             switch (query.Data)
             {
                 case "expense":
+                    await _expenseHandler.ShowInputOptionsAsync(bot, query);
+                    break;
+
+                case "expense_manual":
                     await _expenseHandler.StartAsync(bot, query);
+                    break;
+
+                case "receipt_start":
+                    await _receiptHandler.StartAsync(bot, query);
                     break;
 
                 case "income":
                     await _incomeHandler.StartAsync(bot, query);
+                    break;
+
+                case "account":
+                    await _initialBalanceHandler.ShowAsync(bot, query);
+                    break;
+
+                case "set_account_balance":
+                    await _initialBalanceHandler.StartAsync(bot, query);
+                    break;
+
+                case "add_initial_balance":
+                    await _registrationHandler.HandleAddInitialBalanceAsync(bot, query);
+                    break;
+
+                case "skip_initial_balance":
+                    await _registrationHandler.HandleSkipInitialBalanceAsync(bot, query);
                     break;
 
                 case "cat_food":
@@ -104,6 +154,18 @@ namespace FamilyBudget.Telegram.Bot
 
                 case "family_members":
                     await _familyHandler.ShowMembers(bot, query);
+                    break;
+
+                case "savings":
+                    await _savingsHandler.ShowAsync(bot, query);
+                    break;
+
+                case "savings_contribute":
+                    await _savingsHandler.StartContributionAsync(bot, query);
+                    break;
+
+                case "savings_withdraw":
+                    await _savingsHandler.StartWithdrawalAsync(bot, query);
                     break;
 
                 case "family_leave":

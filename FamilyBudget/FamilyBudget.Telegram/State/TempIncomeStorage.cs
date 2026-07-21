@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,7 +8,7 @@ namespace FamilyBudget.Telegram.State
 {
     public class TempIncomeStorage
     {
-        private readonly Dictionary<long, decimal> _amounts = new();
+        private readonly ConcurrentDictionary<long, decimal> _amounts = new();
 
         public void SetAmount(long userId, decimal amount)
         {
@@ -22,7 +22,7 @@ namespace FamilyBudget.Telegram.State
 
         public void Clear(long userId)
         {
-            _amounts.Remove(userId);
+            _amounts.TryRemove(userId, out _);
         }
     }
 }

@@ -11,19 +11,22 @@ public class BotHandler
     private readonly MessageRouter _messageRouter;
     private readonly ReportHandler _reportHandler;
     private readonly InviteHandler _inviteHandler;
+    private readonly ReceiptHandler _receiptHandler;
 
     public BotHandler(
     CommandRouter commandRouter,
     CallbackRouter callbackRouter,
     MessageRouter messageRouter,
     ReportHandler reportHandler,
-    InviteHandler inviteHandler)
+    InviteHandler inviteHandler,
+    ReceiptHandler receiptHandler)
     {
         _commandRouter = commandRouter;
         _callbackRouter = callbackRouter;
         _messageRouter = messageRouter;
         _reportHandler = reportHandler;
         _inviteHandler = inviteHandler;
+        _receiptHandler = receiptHandler;
     }
 
     public async Task HandleUpdateAsync(
@@ -32,6 +35,12 @@ public class BotHandler
         CancellationToken ct = default!)
     {
         Console.WriteLine($"Update received: {update.Type}");
+
+        if (update.Type == UpdateType.Message && update.Message!.Photo is { Length: > 0 })
+        {
+            await _receiptHandler.HandlePhotoAsync(bot, update.Message, ct);
+            return;
+        }
 
         if (update.Type == UpdateType.Message && update.Message!.Text != null)
         {
@@ -61,7 +70,7 @@ public class BotHandler
         Exception ex,
         CancellationToken ct)
     {
-        Console.WriteLine(ex.Message);
+        Console.Error.WriteLine($"Telegram polling error: {ex}");
         return Task.CompletedTask;
     }
 }

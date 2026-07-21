@@ -11,7 +11,12 @@ public class UserEntity
 
     public string Name { get; set; } = string.Empty;
     public long TelegramId { get; set; }
+    public decimal Balance { get; set; }
+    public string? TelegramUsername { get; set; }
 
     public ICollection<ExpenseEntity> Expenses { get; set; } = new List<ExpenseEntity>();
     public ICollection<IncomeEntity> Incomes { get; set; } = new List<IncomeEntity>();
+    public ICollection<SavingsContributionEntity> SavingsContributions { get; set; } = new List<SavingsContributionEntity>();
+    public ICollection<SavingsWithdrawalEntity> SavingsWithdrawals { get; set; } = new List<SavingsWithdrawalEntity>();
+    public ICollection<ReceiptEntity> Receipts { get; set; } = new List<ReceiptEntity>();
 }

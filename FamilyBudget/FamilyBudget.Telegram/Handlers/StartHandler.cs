@@ -54,6 +54,7 @@ namespace FamilyBudget.Telegram.Handlers
 
             // Проверяем есть ли у пользователя семья
             var user = await _userService.GetByTelegramIdAsync(telegramId);
+            await _userService.UpdateTelegramUsernameAsync(telegramId, message.From.Username);
             
             if (user != null && user.FamilyId == null)
             {

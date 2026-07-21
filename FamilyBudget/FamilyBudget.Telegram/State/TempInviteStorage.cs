@@ -1,12 +1,11 @@
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 
 namespace FamilyBudget.Telegram.State
 {
     public class TempInviteStorage
     {
-        private readonly Dictionary<long, string> _inviteCodes = new();
-        private readonly Dictionary<long, Guid> _inviteFamilyIds = new();
-        private readonly Dictionary<long, string> _suggestedNames = new();
+        private readonly ConcurrentDictionary<long, string> _inviteCodes = new();
+        private readonly ConcurrentDictionary<long, string> _suggestedNames = new();
 
         public void SaveInviteCode(long userId, string code)
         {
@@ -16,16 +15,6 @@ namespace FamilyBudget.Telegram.State
         public string? GetInviteCode(long userId)
         {
             return _inviteCodes.TryGetValue(userId, out var code) ? code : null;
-        }
-
-        public void SaveFamilyId(long userId, Guid familyId)
-        {
-            _inviteFamilyIds[userId] = familyId;
-        }
-
-        public Guid? GetFamilyId(long userId)
-        {
-            return _inviteFamilyIds.TryGetValue(userId, out var id) ? id : null;
         }
 
         public void SaveSuggestedName(long userId, string name)
@@ -40,9 +29,8 @@ namespace FamilyBudget.Telegram.State
 
         public void Clear(long userId)
         {
-            _inviteCodes.Remove(userId);
-            _inviteFamilyIds.Remove(userId);
-            _suggestedNames.Remove(userId);
+            _inviteCodes.TryRemove(userId, out _);
+            _suggestedNames.TryRemove(userId, out _);
         }
     }
 }

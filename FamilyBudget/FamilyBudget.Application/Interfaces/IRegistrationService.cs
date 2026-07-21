@@ -3,6 +3,6 @@
     public interface IRegistrationService
     {
         Task<bool> IsRegisteredAsync(long telegramId);
-        Task RegisterNewFamilyAsync(long telegramId, string familyName, string userName);
+        Task RegisterNewFamilyAsync(long telegramId, string familyName, string userName, string? telegramUsername);
     }
 }

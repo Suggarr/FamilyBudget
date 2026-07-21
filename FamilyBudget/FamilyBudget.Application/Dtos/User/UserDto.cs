@@ -6,5 +6,5 @@ using System.Threading.Tasks;
 
 namespace FamilyBudget.Core.Dtos.User
 {
-    public record UserDto(Guid Id, Guid FamilyId, string Name, long TelegramId);
+    public record UserDto(Guid Id, Guid? FamilyId, string Name, long TelegramId, decimal Balance, string? TelegramUsername);
 }

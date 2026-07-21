@@ -1,7 +1,7 @@
 ﻿using FamilyBudget.Core.Enums;
 using FamilyBudget.Core.Models;
 
-namespace FamilyBudget.Infrastructure.Repositories
+namespace FamilyBudget.Core.Interfaces
 {
     public interface IExpenseRepository
     {
@@ -10,6 +10,7 @@ namespace FamilyBudget.Infrastructure.Repositories
         Task<List<Expense>> GetByFamilyIdAsync(Guid familyId);
         Task<List<Expense>> GetByPeriodAsync(Guid familyId, DateTime startDate, DateTime endDate);
         Task<List<Expense>> GetByUserIdAsync(Guid userId);
+        Task<Expense?> GetByIdAsync(Guid id);
         Task<Guid> UpdateAsync(Guid id, decimal amount, string description, DateTime date, ExpenseCategory category);
     }
 }

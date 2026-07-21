@@ -1,16 +1,24 @@
-﻿//namespace FamilyBudget.Infrastructure.Entities;
+using FamilyBudget.Core.Enums;
 
-//public class ReceiptEntity
-//{ 
-//    public Guid Id { get; set; }
+namespace FamilyBudget.Infrastructure.Entities;
 
-//    public Guid FamilyId { get; set; }
-//    public FamilyEntity Family { get; set; } = null!;
+public class ReceiptEntity
+{
+    public Guid Id { get; set; }
+    public Guid FamilyId { get; set; }
+    public Guid UserId { get; set; }
+    public string? MerchantName { get; set; }
+    public DateTime PurchasedAt { get; set; }
+    public decimal Subtotal { get; set; }
+    public decimal DiscountAmount { get; set; }
+    public decimal TaxAmount { get; set; }
+    public decimal TotalAmount { get; set; }
+    public string Currency { get; set; } = "RUB";
+    public string SourceFileId { get; set; } = string.Empty;
+    public string RawResponse { get; set; } = string.Empty;
+    public ReceiptStatus Status { get; set; }
 
-//    public Guid UserId { get; set; }
-//    public UserEntity User { get; set; } = null!;
-
-//    public string FilePath { get; set; } = string.Empty;
-//    public bool IsProcessed { get; set; }
-//    public decimal? TotalAmount { get; set; }
-//}
+    public FamilyEntity Family { get; set; } = null!;
+    public UserEntity User { get; set; } = null!;
+    public ICollection<ReceiptItemEntity> Items { get; set; } = new List<ReceiptItemEntity>();
+}

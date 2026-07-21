@@ -46,14 +46,14 @@ namespace FamilyBudget.Telegram.Handlers
 
             var user = await _userService.GetByTelegramIdAsync(query.From.Id);
 
-            if (user == null)
+            if (user == null || !user.FamilyId.HasValue)
             {
                 await bot.SendMessage(query.Message!.Chat.Id, "Вы не зарегистрированы.");
                 return;
             }
 
             var report = await _reportService.GetFamilyMonthlyReportAsync(
-                user.FamilyId,
+                user.FamilyId.Value,
                 year,
                 month);
 

@@ -14,11 +14,15 @@ namespace FamilyBudget.Application.Services
     public class IncomeService : IIncomeService
     {
         private readonly IIncomeRepository _incomeRepository;
+        private readonly IUserRepository _userRepository;
+        private readonly IFinanceWriter _financeWriter;
         private readonly IMapper _mapper;
 
-        public IncomeService(IIncomeRepository incomeRepository, IMapper mapper)
+        public IncomeService(IIncomeRepository incomeRepository, IUserRepository userRepository, IFinanceWriter financeWriter, IMapper mapper)
         {
             _incomeRepository = incomeRepository;
+            _userRepository = userRepository;
+            _financeWriter = financeWriter;
             _mapper = mapper;
         }
 
@@ -38,7 +42,18 @@ namespace FamilyBudget.Application.Services
             }
 
             var income = incomeResult.Value;
-            return await _incomeRepository.AddAsync(income);
+            var user = await _userRepository.GetByIdAsync(dto.UserId)
+                ?? throw new InvalidOperationException("User not found.");
+
+            if (user.FamilyId != dto.FamilyId)
+                throw new InvalidOperationException("User does not belong to this family.");
+
+            var creditResult = user.Credit(dto.Amount);
+            if (creditResult.IsFailure)
+                throw new InvalidOperationException(creditResult.Error);
+
+            await _financeWriter.AddIncomeAsync(income, user);
+            return income.Id;
         }
 
         public async Task<List<IncomeDto>> GetByFamilyAsync(Guid familyId)
@@ -60,7 +75,17 @@ namespace FamilyBudget.Application.Services
 
         public async Task DeleteAsync(Guid id)
         {
-            await _incomeRepository.DeleteAsync(id);
+            var income = await _incomeRepository.GetByIdAsync(id);
+            if (income is null)
+                return;
+
+            var user = await _userRepository.GetByIdAsync(income.UserId)
+                ?? throw new InvalidOperationException("User not found.");
+            var debitResult = user.Debit(income.Amount);
+            if (debitResult.IsFailure)
+                throw new InvalidOperationException("Income cannot be deleted because the account no longer has enough funds.");
+
+            await _financeWriter.DeleteIncomeAsync(income, user);
         }
     }
 }

@@ -8,8 +8,8 @@ namespace FamilyBudget.Application.Interfaces
         Task DeleteAsync(Guid id);
         Task<List<UserDto>> GetByFamilyIdAsync(Guid familyId);
         Task<UserDto?> GetByTelegramIdAsync(long telegramId);
-        Task JoinFamilyByInvite(long telegramId, string username, Guid familyId);
-        Task SetFamilyForUserAsync(long telegramId, string newName, Guid familyId);
         Task LeaveFamily(long telegramId);
+        Task SetBalanceAsync(long telegramId, decimal balance);
+        Task UpdateTelegramUsernameAsync(long telegramId, string? telegramUsername);
     }
 }

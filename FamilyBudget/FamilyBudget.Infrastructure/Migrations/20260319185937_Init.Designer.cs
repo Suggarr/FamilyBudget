@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FamilyBudget.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260306144351_Initial")]
-    partial class Initial
+    [Migration("20260319185937_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -75,6 +75,36 @@ namespace FamilyBudget.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Families");
+                });
+
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.FamilyInviteEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("FamilyId");
+
+                    b.ToTable("FamilyInvites");
                 });
 
             modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.GoalEntity", b =>
@@ -145,7 +175,7 @@ namespace FamilyBudget.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("FamilyId")
+                    b.Property<Guid?>("FamilyId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Name")
@@ -185,6 +215,17 @@ namespace FamilyBudget.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.FamilyInviteEntity", b =>
+                {
+                    b.HasOne("FamilyBudget.Infrastructure.Entities.FamilyEntity", "Family")
+                        .WithMany("FamilyInvites")
+                        .HasForeignKey("FamilyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Family");
+                });
+
             modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.GoalEntity", b =>
                 {
                     b.HasOne("FamilyBudget.Infrastructure.Entities.FamilyEntity", "Family")
@@ -219,9 +260,7 @@ namespace FamilyBudget.Infrastructure.Migrations
                 {
                     b.HasOne("FamilyBudget.Infrastructure.Entities.FamilyEntity", "Family")
                         .WithMany("Users")
-                        .HasForeignKey("FamilyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("FamilyId");
 
                     b.Navigation("Family");
                 });
@@ -229,6 +268,8 @@ namespace FamilyBudget.Infrastructure.Migrations
             modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.FamilyEntity", b =>
                 {
                     b.Navigation("Expenses");
+
+                    b.Navigation("FamilyInvites");
 
                     b.Navigation("Goals");
 

@@ -44,6 +44,12 @@ namespace FamilyBudget.Infrastructure.Repositories
             return _mapper.Map<List<Income>>(incomeEntities);
         }
 
+        public async Task<Income?> GetByIdAsync(Guid id)
+        {
+            var entity = await _context.Incomes.AsNoTracking().FirstOrDefaultAsync(i => i.Id == id);
+            return entity is null ? null : _mapper.Map<Income>(entity);
+        }
+
         public async Task<List<Income>> GetByFamilyIdAsync(Guid familyId)
         {
             var incomeEntities = await _context.Incomes
