@@ -12,6 +12,8 @@ namespace FamilyBudget.Telegram.Handlers;
 
 public class ReceiptHandler
 {
+    private const int MaxReceiptImageBytes = 20 * 1024 * 1024;
+
     private readonly IReceiptService _receiptService;
     private readonly IUserService _userService;
     private readonly UserStateService _state;
@@ -37,12 +39,32 @@ public class ReceiptHandler
         _state.Set(query.From.Id, UserState.WaitingForReceiptPhoto);
         await bot.SendMessage(
             query.Message!.Chat.Id,
-            "📷 Отправьте фотографию чека. После распознавания выберите категорию, чтобы подтвердить расход.");
+            "📷 Отправьте фотографию чека или прикрепите изображение как файл без сжатия (JPG, PNG или WebP). " +
+            "После распознавания выберите категорию, чтобы подтвердить расход.");
     }
 
     public async Task HandlePhotoAsync(
         ITelegramBotClient bot,
         Message message,
+        CancellationToken cancellationToken)
+    {
+        var photo = message.Photo![^1];
+        await HandleImageAsync(bot, message, photo.FileId, cancellationToken);
+    }
+
+    public async Task HandleDocumentAsync(
+        ITelegramBotClient bot,
+        Message message,
+        CancellationToken cancellationToken)
+    {
+        var document = message.Document!;
+        await HandleImageAsync(bot, message, document.FileId, cancellationToken);
+    }
+
+    private async Task HandleImageAsync(
+        ITelegramBotClient bot,
+        Message message,
+        string fileId,
         CancellationToken cancellationToken)
     {
         var telegramUserId = message.From?.Id;
@@ -73,25 +95,47 @@ public class ReceiptHandler
         {
             await bot.SendMessage(
                 message.Chat.Id,
-                "📥 Загружаю фотографию чека…",
+                "📥 Загружаю изображение чека…",
                 cancellationToken: cancellationToken);
 
-            var photo = message.Photo![^1];
-            var file = await bot.GetFile(photo.FileId, cancellationToken);
+            var file = await bot.GetFile(fileId, cancellationToken);
             if (string.IsNullOrWhiteSpace(file.FilePath))
                 throw new InvalidOperationException("Telegram did not return the receipt file path.");
 
             await using var image = new MemoryStream();
             await bot.DownloadFile(file.FilePath, image, cancellationToken);
 
+            if (image.Length == 0)
+                throw new InvalidOperationException("Telegram returned an empty receipt image.");
+
+            if (image.Length > MaxReceiptImageBytes)
+            {
+                await bot.SendMessage(
+                    message.Chat.Id,
+                    "Файл слишком большой. Максимальный размер изображения чека — 20 МБ.",
+                    cancellationToken: cancellationToken);
+                return;
+            }
+
+            var imageBytes = image.ToArray();
+            var mediaType = DetectImageMediaType(imageBytes);
+            if (mediaType is null)
+            {
+                await bot.SendMessage(
+                    message.Chat.Id,
+                    "Этот файл не является поддерживаемым изображением. Отправьте чек в формате JPG, PNG или WebP.",
+                    cancellationToken: cancellationToken);
+                return;
+            }
+
             var job = new ReceiptProcessingJob(
                 message.Chat.Id,
                 new CreateReceiptDto(
                     user.FamilyId.Value,
                     user.Id,
-                    photo.FileId,
-                    image.ToArray(),
-                    "image/jpeg"));
+                    fileId,
+                    imageBytes,
+                    mediaType));
 
             if (!_queue.TryEnqueue(job))
             {
@@ -105,7 +149,7 @@ public class ReceiptHandler
             _state.Clear(telegramUserId.Value);
             await bot.SendMessage(
                 message.Chat.Id,
-                "✅ Фото принято. Чек распознаётся в фоне — пока можно пользоваться другими командами бота.",
+                "✅ Изображение принято. Чек распознаётся в фоне — пока можно пользоваться другими командами бота.",
                 cancellationToken: cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -120,6 +164,24 @@ public class ReceiptHandler
                 "Не удалось принять фотографию чека. Попробуйте отправить её ещё раз.",
                 cancellationToken: cancellationToken);
         }
+    }
+
+    private static string? DetectImageMediaType(ReadOnlySpan<byte> bytes)
+    {
+        if (bytes.Length >= 3 && bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF)
+            return "image/jpeg";
+
+        if (bytes.Length >= 8 &&
+            bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47 &&
+            bytes[4] == 0x0D && bytes[5] == 0x0A && bytes[6] == 0x1A && bytes[7] == 0x0A)
+            return "image/png";
+
+        if (bytes.Length >= 12 &&
+            bytes[0] == (byte)'R' && bytes[1] == (byte)'I' && bytes[2] == (byte)'F' && bytes[3] == (byte)'F' &&
+            bytes[8] == (byte)'W' && bytes[9] == (byte)'E' && bytes[10] == (byte)'B' && bytes[11] == (byte)'P')
+            return "image/webp";
+
+        return null;
     }
 
     public async Task ConfirmAsync(ITelegramBotClient bot, CallbackQuery query)

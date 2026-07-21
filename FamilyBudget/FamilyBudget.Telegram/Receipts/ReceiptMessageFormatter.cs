@@ -12,15 +12,14 @@ public static class ReceiptMessageFormatter
         var merchant = string.IsNullOrWhiteSpace(receipt.MerchantName)
             ? "Неизвестный магазин"
             : receipt.MerchantName;
-        var lines = receipt.Items.Take(8)
+        var lines = receipt.Items
             .Select(item => FormatItem(item, receipt.Currency));
-        var moreItems = receipt.Items.Count > 8 ? "\n• …" : string.Empty;
 
         return $"🧾 Чек: {merchant}\n" +
                $"Сумма до скидки: {Money(receipt.Subtotal)} {receipt.Currency}\n" +
                $"Скидка чека: {Money(receipt.DiscountAmount)} {receipt.Currency}\n" +
                $"Итого к оплате: {Money(receipt.TotalAmount)} {receipt.Currency}\n\n" +
-               $"Позиции:\n{string.Join('\n', lines)}{moreItems}\n\n" +
+               $"Позиции:\n{string.Join('\n', lines)}\n\n" +
                "Выберите категорию — это подтвердит и добавит расход.";
     }
 

@@ -31,6 +31,22 @@ public sealed class OllamaReceiptParser : IReceiptParser
         """;
 
     private const string UserPrompt = "Распознай чек и верни данные строго в запрошенной JSON-структуре.";
+    private const string DiscountSignPrompt = """
+        Денежные значения скидок в JSON всегда должны быть неотрицательными.
+        Если на чеке напечатано «СКИДКА -0,01», верни item.discountAmount=0.01.
+        Строка «СКИДКА» не является отдельным товаром и не должна попадать в items.
+
+        Читай позиции строго сверху вниз блоками. Числовая строка вида «цена x количество = сумма»
+        относится к ближайшему ПРЕДЫДУЩЕМУ названию товара, а не к следующему названию.
+        Строка «СКИДКА» внутри такого блока относится к этому же предыдущему товару и не может
+        быть перенесена на соседнюю позицию. Не начинай новую позицию по строке скидки.
+
+        Отдельно найди итоговую скидку во всём чеке: её метки могут быть «ИТОГО СКИДКА»,
+        «СКИДКА ИТОГО», «ОБЩАЯ СКИДКА», «ВАША СКИДКА» или просто «СКИДКА» в блоке итогов.
+        Она может находиться после строк «ИТОГО» или «ИТОГО К ОПЛАТЕ».
+        Это discountAmount всего чека, а не скидка товара. Если итоговой строки нет,
+        discountAmount всего чека равен сумме item.discountAmount всех позиций.
+        """;
     private const string TotalsAndItemsPrompt = """
         Обязательно различай промежуточную сумму и сумму к оплате:
         - надписи «ИТОГ», «К ОПЛАТЕ» и «ОПЛАЧЕНО» означают totalAmount — фактически уплаченную сумму;
@@ -41,6 +57,11 @@ public sealed class OllamaReceiptParser : IReceiptParser
 
         Пример: «ВСЕГО 546,52; СКИДКА 27,33; ИТОГ 519,19» означает
         subtotal=546.52, discountAmount=27.33, totalAmount=519.19.
+
+        Пример с построчными скидками: «ИТОГО 34,80; ИТОГО К ОПЛАТЕ 34,73;
+        ИТОГО СКИДКА -0,07» означает subtotal=34.80, discountAmount=0.07,
+        totalAmount=34.73. Не возвращай discountAmount=0, если на чеке видна
+        итоговая скидка или скидки позиций.
 
         Для каждой позиции всегда извлекай quantity и unitPrice из строки вида «количество X цена».
         Сохраняй дробное количество без округления: «1,853 X 286,00» означает quantity=1.853 и unitPrice=286.00.
@@ -78,7 +99,7 @@ public sealed class OllamaReceiptParser : IReceiptParser
             new ChatMessage(ChatRole.System, SystemPrompt),
             new ChatMessage(ChatRole.User, new List<AIContent>
             {
-                new TextContent($"{UserPrompt}\n\n{TotalsAndItemsPrompt}"),
+                new TextContent($"{UserPrompt}\n\n{TotalsAndItemsPrompt}\n\n{DiscountSignPrompt}"),
                 new DataContent(imageBytes, mediaType)
             })
         };
@@ -100,19 +121,21 @@ public sealed class OllamaReceiptParser : IReceiptParser
             ?? throw new InvalidOperationException("Ollama returned invalid receipt JSON.");
 
         var items = parsed.Items?
-            .Where(item => !string.IsNullOrWhiteSpace(item.Name))
+            .Where(item => !string.IsNullOrWhiteSpace(item.Name) && !IsDiscountLine(item))
             .Select(item => new ReceiptParseItem(
                 item.Name!.Trim(),
                 item.Quantity > 0 ? item.Quantity : 1,
                 item.UnitPrice,
-                item.DiscountAmount,
+                Math.Abs(item.DiscountAmount),
                 item.TotalAmount))
             .ToList() ?? [];
 
+        var itemDiscountAmount = items.Sum(item => item.DiscountAmount);
+        var receiptDiscountAmount = ResolveReceiptDiscountAmount(parsed.DiscountAmount, itemDiscountAmount);
         var subtotal = parsed.Subtotal > 0
             ? parsed.Subtotal
             : items.Sum(item => item.TotalAmount);
-        var totalAmount = ResolveTotalAmount(parsed, items, subtotal);
+        var totalAmount = ResolveTotalAmount(parsed, items, subtotal, receiptDiscountAmount);
         if (totalAmount <= 0)
             throw new InvalidOperationException("Ollama could not extract a positive receipt total.");
 
@@ -120,7 +143,7 @@ public sealed class OllamaReceiptParser : IReceiptParser
             parsed.MerchantName,
             parsed.PurchasedAt?.ToUniversalTime() ?? DateTime.UtcNow,
             subtotal,
-            parsed.DiscountAmount,
+            receiptDiscountAmount,
             parsed.TaxAmount,
             totalAmount,
             "BYN",
@@ -131,16 +154,32 @@ public sealed class OllamaReceiptParser : IReceiptParser
     private static decimal ResolveTotalAmount(
         ReceiptParsePayload parsed,
         IReadOnlyCollection<ReceiptParseItem> items,
-        decimal subtotal)
+        decimal subtotal,
+        decimal receiptDiscountAmount)
     {
-        var calculatedTotal = subtotal - parsed.DiscountAmount + parsed.TaxAmount;
-        if (parsed.DiscountAmount > 0 && calculatedTotal > 0)
-            return calculatedTotal;
-
         if (parsed.TotalAmount > 0)
             return parsed.TotalAmount;
 
+        var calculatedTotal = subtotal - receiptDiscountAmount + parsed.TaxAmount;
+
         return calculatedTotal > 0 ? calculatedTotal : items.Sum(item => item.TotalAmount);
+    }
+
+    private static decimal ResolveReceiptDiscountAmount(decimal parsedDiscountAmount, decimal itemDiscountAmount)
+    {
+        var extractedDiscount = Math.Abs(parsedDiscountAmount);
+        if (extractedDiscount > 0)
+            return extractedDiscount;
+
+        return itemDiscountAmount;
+    }
+
+    private static bool IsDiscountLine(ReceiptParsePayloadItem item)
+    {
+        var name = item.Name?.Trim();
+        return !string.IsNullOrWhiteSpace(name) &&
+               name.Contains("скидк", StringComparison.OrdinalIgnoreCase) &&
+               item.TotalAmount <= 0;
     }
 
     private sealed class ReceiptParsePayload

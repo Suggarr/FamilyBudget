@@ -42,6 +42,12 @@ public class BotHandler
             return;
         }
 
+        if (update.Type == UpdateType.Message && update.Message!.Document is not null)
+        {
+            await _receiptHandler.HandleDocumentAsync(bot, update.Message, ct);
+            return;
+        }
+
         if (update.Type == UpdateType.Message && update.Message!.Text != null)
         {
             if (update.Message.Text.StartsWith("/start join_"))

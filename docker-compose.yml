@@ -2,8 +2,10 @@ services:
   postgres:
     container_name: familybudget-postgres
     image: postgres:latest
-    env_file:
-      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "${POSTGRES_PORT:-5433}:5432"
     volumes:
@@ -15,8 +17,10 @@ services:
   ollama:
     container_name: familybudget-ollama
     image: ollama/ollama:latest
+    gpus: all
     environment:
       OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen3.5:4b}
+      OLLAMA_CONTEXT_LENGTH: "${OLLAMA_CONTEXT_LENGTH:-8192}"
     entrypoint: ["/bin/sh", "-c"]
     command: ["ollama serve & server_pid=$$!; until ollama list >/dev/null 2>&1; do sleep 1; done; ollama pull \"$${OLLAMA_MODEL}\"; wait $$server_pid"]
     ports:

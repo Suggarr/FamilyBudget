@@ -3,6 +3,7 @@ using FamilyBudget.Telegram.Keyboards;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 using Telegram.Bot;
 
 namespace FamilyBudget.Telegram.Receipts;
@@ -57,7 +58,15 @@ public sealed class ReceiptProcessingWorker : BackgroundService
             _logger.LogWarning(ex, "Receipt processing timed out for chat {ChatId}", job.ChatId);
             await NotifyFailureAsync(
                 job.ChatId,
-                "Распознавание чека заняло слишком много времени. Попробуйте отправить более чёткую фотографию.",
+                "Распознавание чека заняло слишком много времени. Попробуйте отправить изображение ещё раз.",
+                cancellationToken);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogWarning(ex, "Receipt recognition returned incomplete JSON for chat {ChatId}", job.ChatId);
+            await NotifyFailureAsync(
+                job.ChatId,
+                "Модель не смогла сформировать полный результат распознавания. Попробуйте отправить чек ещё раз.",
                 cancellationToken);
         }
         catch (Exception ex)
@@ -66,7 +75,7 @@ public sealed class ReceiptProcessingWorker : BackgroundService
 
             await NotifyFailureAsync(
                 job.ChatId,
-                "Не удалось распознать чек. Попробуйте отправить более чёткую фотографию.",
+                "Не удалось обработать чек. Попробуйте отправить изображение ещё раз.",
                 cancellationToken);
         }
     }
