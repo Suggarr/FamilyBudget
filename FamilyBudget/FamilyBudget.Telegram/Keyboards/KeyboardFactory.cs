@@ -26,6 +26,7 @@ namespace FamilyBudget.Telegram.Keyboards
                 },
                 new[]
                 {
+                    InlineKeyboardButton.WithCallbackData("📖 История", "history"),
                     InlineKeyboardButton.WithCallbackData("💳 Мой счёт", "account")
                 }
             });

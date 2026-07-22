@@ -24,9 +24,11 @@ namespace FamilyBudget.Telegram.Bot
         private readonly InitialBalanceHandler _initialBalanceHandler;
         private readonly SavingsHandler _savingsHandler;
         private readonly ReceiptHandler _receiptHandler;
+        private readonly FamilyHistoryHandler _familyHistoryHandler;
 
         public CallbackRouter(ExpenseHandler expenseHandler, RegistrationHandler registrationHandler, IncomeHandler incomeHandler, ReportHandler reportHandler, 
-            InviteHandler inviteHandler, FamilyHandler familyHandler, InitialBalanceHandler initialBalanceHandler, SavingsHandler savingsHandler, ReceiptHandler receiptHandler)
+            InviteHandler inviteHandler, FamilyHandler familyHandler, InitialBalanceHandler initialBalanceHandler, SavingsHandler savingsHandler,
+            ReceiptHandler receiptHandler, FamilyHistoryHandler familyHistoryHandler)
         {
             _expenseHandler = expenseHandler;
             _registrationHandler = registrationHandler;
@@ -37,6 +39,7 @@ namespace FamilyBudget.Telegram.Bot
             _initialBalanceHandler = initialBalanceHandler;
             _savingsHandler = savingsHandler;
             _receiptHandler = receiptHandler;
+            _familyHistoryHandler = familyHistoryHandler;
         }
 
         public async Task RouteAsync(ITelegramBotClient bot, CallbackQuery query)
@@ -50,24 +53,32 @@ namespace FamilyBudget.Telegram.Bot
                 return;
             }
 
-            if (query.Data!.StartsWith("report:"))
-            {
-                await _reportHandler.HandleMonth(bot, query);
-            }
+            var data = query.Data;
+            if (string.IsNullOrWhiteSpace(data))
+                return;
 
-            if (query.Data.StartsWith("receipt_confirm:"))
+            if (data.StartsWith("receipt_confirm:"))
             {
                 await _receiptHandler.ConfirmAsync(bot, query);
                 return;
             }
 
-            if (query.Data.StartsWith("receipt_reject:"))
+            if (data.StartsWith("receipt_reject:"))
             {
                 await _receiptHandler.RejectAsync(bot, query);
                 return;
             }
 
-            switch (query.Data)
+            if (data.StartsWith("history_page:", StringComparison.Ordinal))
+            {
+                var pageText = data["history_page:".Length..];
+                if (int.TryParse(pageText, out var page) && page > 0)
+                    await _familyHistoryHandler.ShowAsync(bot, query, page);
+
+                return;
+            }
+
+            switch (data)
             {
                 case "expense":
                     await _expenseHandler.ShowInputOptionsAsync(bot, query);
@@ -83,6 +94,13 @@ namespace FamilyBudget.Telegram.Bot
 
                 case "income":
                     await _incomeHandler.StartAsync(bot, query);
+                    break;
+
+                case "history":
+                    await _familyHistoryHandler.ShowAsync(bot, query);
+                    break;
+
+                case "history_noop":
                     break;
 
                 case "account":
@@ -126,7 +144,27 @@ namespace FamilyBudget.Telegram.Bot
                     break;
 
                 case "report":
-                    await _reportHandler.ShowMonths(bot, query.Message!);
+                    await _reportHandler.ShowPeriodsAsync(bot, query);
+                    break;
+
+                case "report_all":
+                    await _reportHandler.ShowAllTimeAsync(bot, query);
+                    break;
+
+                case "report_7_days":
+                    await _reportHandler.ShowRecentDaysAsync(bot, query, 7);
+                    break;
+
+                case "report_30_days":
+                    await _reportHandler.ShowRecentDaysAsync(bot, query, 30);
+                    break;
+
+                case "report_custom":
+                    await _reportHandler.StartCustomPeriodAsync(bot, query);
+                    break;
+
+                case "report_cancel":
+                    await _reportHandler.CancelAsync(bot, query);
                     break;
 
                 case "create_family":

@@ -20,6 +20,7 @@ namespace FamilyBudget.Telegram.Bot
         private readonly InviteHandler _inviteHandler;
         private readonly InitialBalanceHandler _initialBalanceHandler;
         private readonly SavingsHandler _savingsHandler;
+        private readonly ReportHandler _reportHandler;
 
         public MessageRouter(
             UserStateService state,
@@ -30,7 +31,8 @@ namespace FamilyBudget.Telegram.Bot
             IncomeHandler incomeHandler,
             InviteHandler inviteHandler,
             InitialBalanceHandler initialBalanceHandler,
-            SavingsHandler savingsHandler)
+            SavingsHandler savingsHandler,
+            ReportHandler reportHandler)
         {
             _state = state;
             _storage = storage;
@@ -41,6 +43,7 @@ namespace FamilyBudget.Telegram.Bot
             _inviteHandler = inviteHandler;
             _initialBalanceHandler = initialBalanceHandler;
             _savingsHandler = savingsHandler;
+            _reportHandler = reportHandler;
         }
 
         public async Task RouteAsync(
@@ -126,6 +129,10 @@ namespace FamilyBudget.Telegram.Bot
 
                 case UserState.WaitingForSavingsWithdrawal:
                     await _savingsHandler.HandleWithdrawalAsync(bot, message);
+                    break;
+
+                case UserState.WaitingForReportPeriod:
+                    await _reportHandler.HandleCustomPeriodAsync(bot, message);
                     break;
 
             }

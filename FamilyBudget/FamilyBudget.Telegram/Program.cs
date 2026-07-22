@@ -80,6 +80,8 @@ builder.Services.AddScoped<IGoalService, GoalService>();
 builder.Services.AddScoped<IRegistrationService, RegistrationService>();
 builder.Services.AddScoped<ISavingsService, SavingsService>();
 builder.Services.AddScoped<IReceiptService, ReceiptService>();
+builder.Services.AddScoped<IFamilyReportService, FamilyReportService>();
+builder.Services.AddScoped<IFamilyHistoryService, FamilyHistoryService>();
 builder.Services.AddScoped<IChatClient>(_ =>
 {
     var baseUrl = Environment.GetEnvironmentVariable("OLLAMA_BASE_URL") ?? "http://localhost:11434/";
@@ -91,7 +93,6 @@ builder.Services.AddScoped<IChatClient>(_ =>
     return new OllamaApiClient(client, Environment.GetEnvironmentVariable("OLLAMA_MODEL") ?? "qwen3.5:4b", null);
 });
 builder.Services.AddScoped<IReceiptParser, OllamaReceiptParser>();
-builder.Services.AddScoped<MonthlyReportService>();
 
 // ================= BOT =================
 builder.Services.AddScoped<BotHandler>();
@@ -109,6 +110,7 @@ builder.Services.AddScoped<InviteHandler>();
 builder.Services.AddScoped<FamilyHandler>();
 builder.Services.AddScoped<SavingsHandler>();
 builder.Services.AddScoped<ReceiptHandler>();
+builder.Services.AddScoped<FamilyHistoryHandler>();
 
 builder.Services.AddSingleton<ReceiptProcessingQueue>();
 builder.Services.AddHostedService<ReceiptProcessingWorker>();
