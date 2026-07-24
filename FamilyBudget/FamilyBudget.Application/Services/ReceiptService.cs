@@ -1,4 +1,5 @@
 using FamilyBudget.Application.Dtos.Receipt;
+using FamilyBudget.Application.Exceptions;
 using FamilyBudget.Application.Interfaces;
 using FamilyBudget.Application.Services;
 using FamilyBudget.Core.Dtos.Expense;
@@ -28,6 +29,13 @@ public class ReceiptService : IReceiptService
 
         foreach (var parsedItem in parsed.Items)
         {
+            if (Math.Abs(parsedItem.Quantity * parsedItem.UnitPrice - parsedItem.DiscountAmount - parsedItem.TotalAmount) > 0.1m)
+            {
+                throw new ReceiptAmountsValidationException(
+                    $"Не сошлась сумма позиции «{parsedItem.Name}».",
+                    parsed);
+            }
+
             var itemResult = ReceiptItem.Create(
                 Guid.NewGuid(),
                 parsedItem.Name,
@@ -40,6 +48,15 @@ public class ReceiptService : IReceiptService
                 throw new InvalidOperationException(itemResult.Error);
 
             items.Add(itemResult.Value);
+        }
+
+        var itemsTotal = items.Sum(item => item.TotalAmount);
+        if (Math.Abs(itemsTotal - parsed.TotalAmount) > 0.1m &&
+            Math.Abs(itemsTotal - parsed.Subtotal) > 0.1m)
+        {
+            throw new ReceiptAmountsValidationException(
+                "Сумма распознанных позиций не совпала с итогами чека.",
+                parsed);
         }
 
         var receiptResult = Receipt.Create(
@@ -70,6 +87,42 @@ public class ReceiptService : IReceiptService
         return receipts.Select(ToDto).ToList();
     }
 
+    public async Task<ReceiptHistoryPageDto> GetFamilyPageAsync(
+        Guid familyId,
+        int page,
+        int pageSize = 5)
+    {
+        if (familyId == Guid.Empty)
+            throw new ArgumentException("Family ID cannot be empty.", nameof(familyId));
+        if (page <= 0)
+            throw new ArgumentOutOfRangeException(nameof(page), "Page number must be greater than zero.");
+        if (pageSize is < 1 or > 20)
+            throw new ArgumentOutOfRangeException(nameof(pageSize), "Page size must be between 1 and 20.");
+
+        var receipts = await _repository.GetByFamilyIdAsync(familyId);
+        var totalCount = receipts.Count;
+        var totalPages = Math.Max(1, (int)Math.Ceiling(totalCount / (double)pageSize));
+        var actualPage = Math.Min(page, totalPages);
+        var items = receipts
+            .Skip((actualPage - 1) * pageSize)
+            .Take(pageSize)
+            .Select(ToDto)
+            .ToList();
+
+        return new ReceiptHistoryPageDto(items, actualPage, pageSize, totalCount, totalPages);
+    }
+
+    public async Task<ReceiptDto?> GetByIdForFamilyAsync(Guid receiptId, Guid familyId)
+    {
+        if (receiptId == Guid.Empty || familyId == Guid.Empty)
+            return null;
+
+        var receipt = await _repository.GetByIdAsync(receiptId);
+        return receipt is not null && receipt.FamilyId == familyId
+            ? ToDto(receipt)
+            : null;
+    }
+
     public async Task<Guid> ConfirmAndCreateExpenseAsync(Guid receiptId, ExpenseCategory category)
     {
         var receipt = await _repository.GetByIdAsync(receiptId)
@@ -86,7 +139,7 @@ public class ReceiptService : IReceiptService
             BuildExpenseDescription(receipt),
             receipt.PurchasedAt));
 
-        var result = receipt.Confirm();
+        var result = receipt.Confirm(expenseId);
         if (result.IsFailure)
             throw new InvalidOperationException(result.Error);
 
@@ -118,6 +171,7 @@ public class ReceiptService : IReceiptService
         receipt.Currency,
         receipt.SourceFileId,
         receipt.Status,
+        receipt.ExpenseId,
         receipt.Items.Select(item => new ReceiptItemDto(
             item.Id,
             item.Name,

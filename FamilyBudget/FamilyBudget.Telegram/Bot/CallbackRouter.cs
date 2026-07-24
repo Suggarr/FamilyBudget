@@ -1,6 +1,7 @@
 ﻿using FamilyBudget.Core.Enums;
 using FamilyBudget.Telegram.Handlers;
 using FamilyBudget.Telegram.Keyboards;
+using FamilyBudget.Telegram.Receipts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,10 +26,11 @@ namespace FamilyBudget.Telegram.Bot
         private readonly SavingsHandler _savingsHandler;
         private readonly ReceiptHandler _receiptHandler;
         private readonly FamilyHistoryHandler _familyHistoryHandler;
+        private readonly ReceiptHistoryHandler _receiptHistoryHandler;
 
         public CallbackRouter(ExpenseHandler expenseHandler, RegistrationHandler registrationHandler, IncomeHandler incomeHandler, ReportHandler reportHandler, 
             InviteHandler inviteHandler, FamilyHandler familyHandler, InitialBalanceHandler initialBalanceHandler, SavingsHandler savingsHandler,
-            ReceiptHandler receiptHandler, FamilyHistoryHandler familyHistoryHandler)
+            ReceiptHandler receiptHandler, FamilyHistoryHandler familyHistoryHandler, ReceiptHistoryHandler receiptHistoryHandler)
         {
             _expenseHandler = expenseHandler;
             _registrationHandler = registrationHandler;
@@ -40,6 +42,7 @@ namespace FamilyBudget.Telegram.Bot
             _savingsHandler = savingsHandler;
             _receiptHandler = receiptHandler;
             _familyHistoryHandler = familyHistoryHandler;
+            _receiptHistoryHandler = receiptHistoryHandler;
         }
 
         public async Task RouteAsync(ITelegramBotClient bot, CallbackQuery query)
@@ -78,6 +81,56 @@ namespace FamilyBudget.Telegram.Bot
                 return;
             }
 
+            if (data.StartsWith("receipts_page:", StringComparison.Ordinal))
+            {
+                var pageText = data["receipts_page:".Length..];
+                if (int.TryParse(pageText, out var page) && page > 0)
+                    await _receiptHistoryHandler.ShowListAsync(bot, query, page);
+
+                return;
+            }
+
+            if (data.StartsWith("rv:", StringComparison.Ordinal))
+            {
+                var parts = data.Split(':');
+                if (parts.Length == 5 &&
+                    Guid.TryParse(parts[1], out var receiptId) &&
+                    int.TryParse(parts[2], out var itemPage) && itemPage > 0 &&
+                    TryParseReceiptOrigin(parts[3], out var origin) &&
+                    int.TryParse(parts[4], out var originPage) && originPage > 0)
+                {
+                    await _receiptHistoryHandler.ShowDetailsAsync(
+                        bot,
+                        query,
+                        receiptId,
+                        itemPage,
+                        origin,
+                        originPage);
+                }
+
+                return;
+            }
+
+            if (data.StartsWith("receipt_view:", StringComparison.Ordinal))
+            {
+                var parts = data.Split(':');
+                if (parts.Length == 4 &&
+                    Guid.TryParse(parts[1], out var receiptId) &&
+                    int.TryParse(parts[2], out var itemPage) && itemPage > 0 &&
+                    int.TryParse(parts[3], out var listPage) && listPage > 0)
+                {
+                    await _receiptHistoryHandler.ShowDetailsAsync(
+                        bot,
+                        query,
+                        receiptId,
+                        itemPage,
+                        ReceiptNavigationOrigin.ReceiptList,
+                        listPage);
+                }
+
+                return;
+            }
+
             switch (data)
             {
                 case "expense":
@@ -101,6 +154,13 @@ namespace FamilyBudget.Telegram.Bot
                     break;
 
                 case "history_noop":
+                    break;
+
+                case "receipts":
+                    await _receiptHistoryHandler.ShowListAsync(bot, query);
+                    break;
+
+                case "receipts_noop":
                     break;
 
                 case "account":
@@ -224,6 +284,17 @@ namespace FamilyBudget.Telegram.Bot
                         replyMarkup: KeyboardFactory.MainMenu());
                     break;
             }
+        }
+
+        private static bool TryParseReceiptOrigin(
+            string value,
+            out ReceiptNavigationOrigin origin)
+        {
+            origin = value == "h"
+                ? ReceiptNavigationOrigin.FamilyHistory
+                : ReceiptNavigationOrigin.ReceiptList;
+
+            return value is "h" or "r";
         }
     }
 }

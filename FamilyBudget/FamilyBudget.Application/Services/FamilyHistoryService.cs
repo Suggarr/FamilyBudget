@@ -1,6 +1,7 @@
 ﻿using FamilyBudget.Application.Dtos.History;
 using FamilyBudget.Application.Interfaces;
 using FamilyBudget.Core.Interfaces;
+using System.Linq;
 
 namespace FamilyBudget.Application.Services
 {
@@ -11,16 +12,18 @@ namespace FamilyBudget.Application.Services
         private readonly ISavingsContributionRepository _savingsContributionRepository;
         private readonly ISavingsWithdrawalRepository _savingsWithdrawalRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IReceiptRepository _receiptRepository;
 
         public FamilyHistoryService(IExpenseRepository expenseRepository, IIncomeRepository incomeRepository, 
             ISavingsContributionRepository savingsContributionRepository, ISavingsWithdrawalRepository savingsWithdrawalRepository,
-            IUserRepository userRepository)
+            IUserRepository userRepository, IReceiptRepository receiptRepository)
         {
             _expenseRepository = expenseRepository;
             _incomeRepository = incomeRepository;
             _savingsContributionRepository = savingsContributionRepository;
             _savingsWithdrawalRepository = savingsWithdrawalRepository;
             _userRepository = userRepository;
+            _receiptRepository = receiptRepository;
         }
 
         public async Task<FamilyHistoryPageDto> GetFamilyHistoryAsync(Guid familyId, int page, int pageSize = 10)
@@ -29,11 +32,11 @@ namespace FamilyBudget.Application.Services
             {
                 throw new ArgumentException("Family ID cannot be empty.", nameof(familyId));
             }
-            if (page<=0)
+            if (page <= 0)
             {
                 throw new ArgumentException("Page number must be greater than zero.", nameof(page));
             }
-            if (pageSize<1 || pageSize > 50)
+            if (pageSize < 1 || pageSize > 50)
             {
                 throw new ArgumentOutOfRangeException(nameof(pageSize), "Page size must be between 1 and 50.");
             }
@@ -43,11 +46,16 @@ namespace FamilyBudget.Application.Services
             var savingsContributionsFamily = await _savingsContributionRepository.GetByFamilyIdAsync(familyId);
             var savingsWithdrawalsFamily = await _savingsWithdrawalRepository.GetByFamilyIdAsync(familyId);
             var usersFamily = await _userRepository.GetByFamilyIdAsync(familyId);
+            var receiptsFamily = await _receiptRepository.GetByFamilyIdAsync(familyId);
+
+            var receiptIdsByExpenseId = receiptsFamily
+                .Where(r => r.ExpenseId.HasValue)
+                .ToDictionary(r => r.ExpenseId!.Value, r => r.Id);
 
             var userNames = usersFamily.ToDictionary(u => u.Id, u => u.Name);
 
             string GetUserName(Guid userId) => userNames.TryGetValue(userId, out var name) ? name : "Неизвестный пользователь";
-
+            Guid? GetReceiptId(Guid expenseId) => receiptIdsByExpenseId.TryGetValue(expenseId, out var receiptId) ? receiptId : null;
             var operations = new List<FamilyOperationDto>();
 
 
@@ -71,7 +79,7 @@ namespace FamilyBudget.Application.Services
                 e.Amount,
                 e.Description,
                 e.Date,
-                null
+                GetReceiptId(e.Id)
             )));
 
             operations.AddRange(savingsContributionsFamily.Select(sc => new FamilyOperationDto(
@@ -113,4 +121,5 @@ namespace FamilyBudget.Application.Services
             return new FamilyHistoryPageDto(items, actualPage, pageSize, totalCount, totalPages);
         }
     }
+
 }

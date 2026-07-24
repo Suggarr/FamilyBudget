@@ -15,4 +15,5 @@ public record ReceiptDto(
     string Currency,
     string SourceFileId,
     ReceiptStatus Status,
+    Guid? ExpenseId,
     IReadOnlyList<ReceiptItemDto> Items);

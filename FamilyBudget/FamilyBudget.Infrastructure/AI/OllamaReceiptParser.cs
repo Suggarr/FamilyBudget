@@ -31,6 +31,36 @@ public sealed class OllamaReceiptParser : IReceiptParser
         """;
 
     private const string UserPrompt = "Распознай чек и верни данные строго в запрошенной JSON-структуре.";
+    private const string ItemOperandOrderPrompt = """
+        ПОРЯДОК ЦЕНЫ И КОЛИЧЕСТВА В ЧЕКАХ РАЗЛИЧАЕТСЯ.
+        Не считай первое число автоматически количеством, а второе ценой.
+        Сначала определи шаблон всего чека по заголовкам столбцов и нескольким хорошо
+        читаемым позициям, затем применяй этот шаблон ко всем позициям.
+
+        Возможны оба варианта:
+        - «1,853 X 286,00 = 529,96» может означать
+          quantity=1.853, unitPrice=286.00, totalAmount=529.96;
+        - «5,69 * 1,395 = 7,94» может означать
+          unitPrice=5.69, quantity=1.395, totalAmount=7.94.
+
+        Используй позиции с множителем 1.000 для определения шаблона:
+        в строке «1,28 * 1,000 = 1,28» число 1.000 является количеством,
+        а 1.28 — ценой за единицу. Для весового товара сохраняй количество
+        полностью, со всеми видимыми тремя знаками: 1.395, 1.142 или 0.298.
+        Не меняй местами quantity и unitPrice после того, как определил шаблон чека.
+
+        Каждая отдельно напечатанная строка или блок товара является отдельной
+        позицией items. Если одинаковый товар напечатан два раза подряд с одинаковым
+        кодом, названием и ценой, верни две позиции и не объединяй их.
+        Строку «ТОВАРОВ В ЧЕКЕ» используй как дополнительную проверку полноты,
+        включая отдельно напечатанную техническую позицию «Социальная скидка».
+        Не придумывай нечитаемые товары для достижения указанного количества.
+
+        Пример повторяющегося товара:
+        «Мука; 1,28 * 1,000 = 1,28; СКИДКА = -0,13;
+        Мука; 1,28 * 1,000 = 1,28; СКИДКА = -0,13»
+        означает две отдельные позиции items с одинаковым названием.
+        """;
     private const string DiscountSignPrompt = """
         Денежные значения скидок в JSON всегда должны быть неотрицательными.
         Если на чеке напечатано «СКИДКА -0,01», верни item.discountAmount=0.01.
@@ -40,12 +70,39 @@ public sealed class OllamaReceiptParser : IReceiptParser
         относится к ближайшему ПРЕДЫДУЩЕМУ названию товара, а не к следующему названию.
         Строка «СКИДКА» внутри такого блока относится к этому же предыдущему товару и не может
         быть перенесена на соседнюю позицию. Не начинай новую позицию по строке скидки.
+        Если после товара до начала следующего товарного блока нет строки «СКИДКА»,
+        то item.discountAmount этого товара равен 0. Не заимствуй скидку у следующего товара.
+
+        Пример последовательности:
+        «Напиток; 3,19 * 1,000 = 3,19;
+        Творог; 2,32 * 1,000 = 2,32; СКИДКА НА СУММУ = -0,23»
+        означает, что у напитка discountAmount=0, а у творога discountAmount=0.23.
 
         Отдельно найди итоговую скидку во всём чеке: её метки могут быть «ИТОГО СКИДКА»,
         «СКИДКА ИТОГО», «ОБЩАЯ СКИДКА», «ВАША СКИДКА» или просто «СКИДКА» в блоке итогов.
         Она может находиться после строк «ИТОГО» или «ИТОГО К ОПЛАТЕ».
         Это discountAmount всего чека, а не скидка товара. Если итоговой строки нет,
         discountAmount всего чека равен сумме item.discountAmount всех позиций.
+
+        НДС И ОКРУГЛЕНИЕ НЕ ЯВЛЯЮТСЯ СКИДКОЙ:
+        - строки «НДС 10%», «НДС 20%», «СУММА НДС», «СУММА НДС 10%»,
+          «СУММА НДС 20%», «НАЛОГ» содержат информацию о налоге;
+        - процент НДС возле товара не является процентом скидки;
+        - значения из строк НДС запрещено записывать в item.discountAmount
+          или discountAmount всего чека;
+        - строка «ОКРУГЛЕНИЕ» является отдельной корректировкой итоговой суммы,
+          а не скидкой товара или всего чека;
+        - не создавай отдельные позиции для НДС, налога или округления.
+
+        ТЕХНИЧЕСКУЮ СТРОКУ СОЦИАЛЬНОЙ СКИДКИ СОХРАНЯЙ КАК ПОЗИЦИЮ:
+        - строка вида «Социальная скидка 10%; 0,00 * 1,000 = 0,00»
+          должна попадать в items отдельной позицией с quantity=1.000,
+          unitPrice=0, item.discountAmount=0 и item.totalAmount=0;
+        - не заменяй нулевое значение этой позиции общей скидкой чека;
+        - денежную сумму скидки всего чека бери из итоговых строк «СКИДКА»,
+          «ВАШИ СКИДКИ» или «ИТОГО СКИДКА»;
+        - пример «ИТОГО 35,69; ИТОГО СКИДКА -2,84; ИТОГО К ОПЛАТЕ 32,85»
+          означает subtotal=35.69, discountAmount=2.84, totalAmount=32.85.
         """;
     private const string TotalsAndItemsPrompt = """
         Обязательно различай промежуточную сумму и сумму к оплате:
@@ -63,15 +120,24 @@ public sealed class OllamaReceiptParser : IReceiptParser
         totalAmount=34.73. Не возвращай discountAmount=0, если на чеке видна
         итоговая скидка или скидки позиций.
 
-        Для каждой позиции всегда извлекай quantity и unitPrice из строки вида «количество X цена».
-        Сохраняй дробное количество без округления: «1,853 X 286,00» означает quantity=1.853 и unitPrice=286.00.
+        Пример с НДС и округлением: «ПОДЫТОГ 1016,21; ОКРУГЛЕНИЕ 0,21;
+        ИТОГ 1016,00; СУММА НДС 20% 78,66; СУММА НДС 10% 59,48» означает
+        subtotal=1016.21, discountAmount=0, totalAmount=1016.00,
+        taxAmount=138.14. Числа 78.66 и 59.48 являются частями НДС,
+        а не скидками. Число 0.21 является округлением, а не скидкой.
+
+        Для каждой позиции всегда извлекай quantity и unitPrice из строки с умножением,
+        предварительно определив их порядок по шаблону этого чека.
+        Сохраняй дробное количество без округления.
         Если «2,000 X 9,20» сопровождается скидкой 1,84 и суммой 16,56, верни
         quantity=2.000, unitPrice=9.20, discountAmount=1.84, totalAmount=16.56.
         В качестве merchantName используй видимое название в верхней части чека, даже если там написано просто «Магазин».
 
         Перед ответом проверь арифметику:
         quantity * unitPrice - item.discountAmount приблизительно равно item.totalAmount,
-        subtotal - discountAmount + taxAmount приблизительно равно totalAmount.
+        subtotal - discountAmount приблизительно равно totalAmount с учётом отдельно
+        напечатанного округления. taxAmount является информационным значением уже включённого
+        в стоимость налога: не прибавляй его к subtotal или totalAmount.
         Возвращай только JSON без пояснений.
         """;
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
@@ -99,7 +165,8 @@ public sealed class OllamaReceiptParser : IReceiptParser
             new ChatMessage(ChatRole.System, SystemPrompt),
             new ChatMessage(ChatRole.User, new List<AIContent>
             {
-                new TextContent($"{UserPrompt}\n\n{TotalsAndItemsPrompt}\n\n{DiscountSignPrompt}"),
+                new TextContent(
+                    $"{UserPrompt}\n\n{ItemOperandOrderPrompt}\n\n{TotalsAndItemsPrompt}\n\n{DiscountSignPrompt}"),
                 new DataContent(imageBytes, mediaType)
             })
         };
@@ -107,7 +174,7 @@ public sealed class OllamaReceiptParser : IReceiptParser
         var chatOptions = new ChatOptions
         {
             Temperature = 0,
-            MaxOutputTokens = 1024,
+            MaxOutputTokens = 1024*3,
             ResponseFormat = ChatResponseFormat.ForJsonSchema<ReceiptParsePayload>(JsonOptions, "receipt")
         };
         chatOptions.AddOllamaOption(OllamaOption.Think, false);
@@ -177,7 +244,14 @@ public sealed class OllamaReceiptParser : IReceiptParser
     private static bool IsDiscountLine(ReceiptParsePayloadItem item)
     {
         var name = item.Name?.Trim();
-        return !string.IsNullOrWhiteSpace(name) &&
+        if (string.IsNullOrWhiteSpace(name))
+            return false;
+
+        var isSocialDiscountPosition =
+            name.Contains("социальн", StringComparison.OrdinalIgnoreCase) &&
+            name.Contains("скидк", StringComparison.OrdinalIgnoreCase);
+
+        return !isSocialDiscountPosition &&
                name.Contains("скидк", StringComparison.OrdinalIgnoreCase) &&
                item.TotalAmount <= 0;
     }

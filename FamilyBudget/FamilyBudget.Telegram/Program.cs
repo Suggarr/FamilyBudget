@@ -111,6 +111,7 @@ builder.Services.AddScoped<FamilyHandler>();
 builder.Services.AddScoped<SavingsHandler>();
 builder.Services.AddScoped<ReceiptHandler>();
 builder.Services.AddScoped<FamilyHistoryHandler>();
+builder.Services.AddScoped<ReceiptHistoryHandler>();
 
 builder.Services.AddSingleton<ReceiptProcessingQueue>();
 builder.Services.AddHostedService<ReceiptProcessingWorker>();

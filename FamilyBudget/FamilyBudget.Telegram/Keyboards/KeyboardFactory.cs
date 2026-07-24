@@ -27,6 +27,10 @@ namespace FamilyBudget.Telegram.Keyboards
                 new[]
                 {
                     InlineKeyboardButton.WithCallbackData("📖 История", "history"),
+                    InlineKeyboardButton.WithCallbackData("🧾 Чеки", "receipts")
+                },
+                new[]
+                {
                     InlineKeyboardButton.WithCallbackData("💳 Мой счёт", "account")
                 }
             });

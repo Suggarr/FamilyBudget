@@ -26,6 +26,7 @@ public class Receipt
         string sourceFileId,
         string rawResponse,
         ReceiptStatus status,
+        Guid? expenseId,
         IEnumerable<ReceiptItem> items)
     {
         Id = id;
@@ -41,6 +42,7 @@ public class Receipt
         SourceFileId = sourceFileId;
         RawResponse = rawResponse;
         Status = status;
+        ExpenseId = expenseId;
         _items = items.ToList();
     }
 
@@ -57,6 +59,7 @@ public class Receipt
     public string SourceFileId { get; }
     public string RawResponse { get; }
     public ReceiptStatus Status { get; private set; }
+    public Guid? ExpenseId { get; private set; }
     public IReadOnlyList<ReceiptItem> Items => _items;
 
     public static Result<Receipt> Create(
@@ -73,6 +76,7 @@ public class Receipt
         string sourceFileId,
         string rawResponse,
         IEnumerable<ReceiptItem> items,
+        Guid? expenseId = null,
         ReceiptStatus status = ReceiptStatus.Parsed)
     {
         if (id == Guid.Empty || familyId == Guid.Empty || userId == Guid.Empty)
@@ -87,6 +91,9 @@ public class Receipt
             return Result.Failure<Receipt>("Purchase date cannot be in the future.");
         if (subtotal < 0 || discountAmount < 0 || taxAmount < 0 || totalAmount <= 0)
             return Result.Failure<Receipt>("Receipt amounts are invalid.");
+
+        if (expenseId.HasValue && expenseId.Value == Guid.Empty)
+            return Result.Failure<Receipt>("Expense id cannot be empty.");
 
         var normalizedItems = items.ToList();
         if (normalizedItems.Count == 0)
@@ -109,15 +116,21 @@ public class Receipt
             sourceFileId.Trim(),
             rawResponse,
             status,
+            expenseId,
             normalizedItems));
     }
 
-    public Result Confirm()
+    public Result Confirm(Guid expenseId)
     {
+        if (expenseId == Guid.Empty)
+            return Result.Failure("Expense id cannot be empty.");
+
         if (Status != ReceiptStatus.Parsed)
             return Result.Failure("Only parsed receipts can be confirmed.");
 
+        ExpenseId = expenseId;
         Status = ReceiptStatus.Confirmed;
+
         return Result.Success();
     }
 

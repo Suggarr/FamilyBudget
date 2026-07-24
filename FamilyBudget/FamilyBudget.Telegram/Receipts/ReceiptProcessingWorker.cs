@@ -1,3 +1,4 @@
+using FamilyBudget.Application.Exceptions;
 using FamilyBudget.Application.Interfaces;
 using FamilyBudget.Telegram.Keyboards;
 using Microsoft.Extensions.DependencyInjection;
@@ -69,6 +70,22 @@ public sealed class ReceiptProcessingWorker : BackgroundService
                 "Модель не смогла сформировать полный результат распознавания. Попробуйте отправить чек ещё раз.",
                 cancellationToken);
         }
+        catch (ReceiptAmountsValidationException ex)
+        {
+            _logger.LogWarning(ex, "Receipt amounts failed validation for chat {ChatId}", job.ChatId);
+            await NotifyFailureAsync(
+                job.ChatId,
+                ReceiptMessageFormatter.FormatValidationFailure(ex),
+                cancellationToken);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Receipt processing could not be completed for chat {ChatId}", job.ChatId);
+            await NotifyFailureAsync(
+                job.ChatId,
+                "Не удалось обработать распознанные данные чека. Попробуйте отправить более чёткое изображение или файл без сжатия.",
+                cancellationToken);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Receipt processing failed for chat {ChatId}", job.ChatId);
@@ -84,7 +101,25 @@ public sealed class ReceiptProcessingWorker : BackgroundService
     {
         try
         {
-            await _bot.SendMessage(chatId, message, cancellationToken: cancellationToken);
+            const int telegramMessageLimit = 4000;
+            var remainingMessage = message;
+
+            while (remainingMessage.Length > telegramMessageLimit)
+            {
+                var splitIndex = remainingMessage.LastIndexOf('\n', telegramMessageLimit);
+                if (splitIndex <= 0)
+                    splitIndex = telegramMessageLimit;
+
+                await _bot.SendMessage(
+                    chatId,
+                    remainingMessage[..splitIndex],
+                    cancellationToken: cancellationToken);
+
+                remainingMessage = remainingMessage[splitIndex..].TrimStart('\r', '\n');
+            }
+
+            if (remainingMessage.Length > 0)
+                await _bot.SendMessage(chatId, remainingMessage, cancellationToken: cancellationToken);
         }
         catch (Exception notificationException)
         {

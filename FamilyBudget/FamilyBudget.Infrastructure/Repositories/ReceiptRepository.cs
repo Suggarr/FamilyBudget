@@ -38,6 +38,10 @@ public class ReceiptRepository : IReceiptRepository
 
     public async Task UpdateAsync(Receipt receipt)
     {
-        await _context.Receipts.Where(r => r.Id == receipt.Id).ExecuteUpdateAsync(s => s.SetProperty(r => r.Status, receipt.Status));
+        await _context.Receipts
+            .Where(r => r.Id == receipt.Id)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(r => r.Status, receipt.Status)
+                .SetProperty(r => r.ExpenseId, receipt.ExpenseId));
     }
 }

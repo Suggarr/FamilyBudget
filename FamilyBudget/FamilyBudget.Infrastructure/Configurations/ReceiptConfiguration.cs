@@ -19,9 +19,15 @@ public class ReceiptConfiguration : IEntityTypeConfiguration<ReceiptEntity>
         builder.Property(r => r.TaxAmount).HasPrecision(18, 2);
         builder.Property(r => r.TotalAmount).HasPrecision(18, 2);
         builder.HasIndex(r => new { r.FamilyId, r.PurchasedAt });
+        builder.HasIndex(r => r.ExpenseId)
+            .IsUnique();
 
         builder.HasOne(r => r.Family).WithMany(f => f.Receipts).HasForeignKey(r => r.FamilyId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(r => r.User).WithMany(u => u.Receipts).HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.Restrict);
         builder.HasMany(r => r.Items).WithOne(i => i.Receipt).HasForeignKey(i => i.ReceiptId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(r => r.Expense)
+            .WithOne()
+            .HasForeignKey<ReceiptEntity>(r => r.ExpenseId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

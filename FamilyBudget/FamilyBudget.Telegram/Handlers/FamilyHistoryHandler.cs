@@ -47,6 +47,6 @@ public sealed class FamilyHistoryHandler
             query.Message.Chat.Id,
             query.Message.MessageId,
             FamilyHistoryMessageFormatter.Format(history),
-            replyMarkup: FamilyHistoryKeyboard.Create(history.Page, history.TotalPages));
+            replyMarkup: FamilyHistoryKeyboard.Create(history));
     }
 }
