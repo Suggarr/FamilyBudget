@@ -21,6 +21,10 @@ public static class ReportPeriodKeyboard
         },
         new[]
         {
+            InlineKeyboardButton.WithCallbackData("⏰ Автоматический отчёт", "report_subscription")
+        },
+        new[]
+        {
             InlineKeyboardButton.WithCallbackData("⬅️ Назад", "main_menu")
         }
     });

@@ -19,4 +19,6 @@ public class UserEntity
     public ICollection<SavingsContributionEntity> SavingsContributions { get; set; } = new List<SavingsContributionEntity>();
     public ICollection<SavingsWithdrawalEntity> SavingsWithdrawals { get; set; } = new List<SavingsWithdrawalEntity>();
     public ICollection<ReceiptEntity> Receipts { get; set; } = new List<ReceiptEntity>();
+
+    public ReportSubscriptionEntity? ReportSubscription { get; set; }
 }

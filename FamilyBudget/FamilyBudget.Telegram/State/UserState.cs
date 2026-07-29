@@ -22,6 +22,7 @@ namespace FamilyBudget.Telegram.State
         WaitingForSavingsContribution,
         WaitingForSavingsWithdrawal,
         WaitingForReceiptPhoto,
-        WaitingForReportPeriod
+        WaitingForReportPeriod,
+        WaitingForReportSubscriptionTime
     }
 }

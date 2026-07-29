@@ -17,6 +17,7 @@ namespace FamilyBudget.Infrastructure
         public DbSet<SavingsWithdrawalEntity> SavingsWithdrawals { get; set; }
         public DbSet<ReceiptEntity> Receipts { get; set; }
         public DbSet<ReceiptItemEntity> ReceiptItems { get; set; }
+        public DbSet<ReportSubscriptionEntity> ReportSubscriptions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

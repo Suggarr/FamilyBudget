@@ -27,10 +27,12 @@ namespace FamilyBudget.Telegram.Bot
         private readonly ReceiptHandler _receiptHandler;
         private readonly FamilyHistoryHandler _familyHistoryHandler;
         private readonly ReceiptHistoryHandler _receiptHistoryHandler;
+        private readonly ReportSubscriptionHandler _reportSubscriptionHandler;
 
         public CallbackRouter(ExpenseHandler expenseHandler, RegistrationHandler registrationHandler, IncomeHandler incomeHandler, ReportHandler reportHandler, 
             InviteHandler inviteHandler, FamilyHandler familyHandler, InitialBalanceHandler initialBalanceHandler, SavingsHandler savingsHandler,
-            ReceiptHandler receiptHandler, FamilyHistoryHandler familyHistoryHandler, ReceiptHistoryHandler receiptHistoryHandler)
+            ReceiptHandler receiptHandler, FamilyHistoryHandler familyHistoryHandler, ReceiptHistoryHandler receiptHistoryHandler,
+            ReportSubscriptionHandler reportSubscriptionHandler)
         {
             _expenseHandler = expenseHandler;
             _registrationHandler = registrationHandler;
@@ -43,6 +45,7 @@ namespace FamilyBudget.Telegram.Bot
             _receiptHandler = receiptHandler;
             _familyHistoryHandler = familyHistoryHandler;
             _receiptHistoryHandler = receiptHistoryHandler;
+            _reportSubscriptionHandler = reportSubscriptionHandler;
         }
 
         public async Task RouteAsync(ITelegramBotClient bot, CallbackQuery query)
@@ -63,6 +66,21 @@ namespace FamilyBudget.Telegram.Bot
             if (data.StartsWith("receipt_confirm:"))
             {
                 await _receiptHandler.ConfirmAsync(bot, query);
+                return;
+            }
+
+            if (data.StartsWith("report_subscription_day:", StringComparison.Ordinal))
+            {
+                var dayText = data["report_subscription_day:".Length..];
+                if (int.TryParse(dayText, out var dayValue) &&
+                    Enum.IsDefined((DayOfWeek)dayValue))
+                {
+                    await _reportSubscriptionHandler.SelectDayAsync(
+                        bot,
+                        query,
+                        (DayOfWeek)dayValue);
+                }
+
                 return;
             }
 
@@ -225,6 +243,18 @@ namespace FamilyBudget.Telegram.Bot
 
                 case "report_cancel":
                     await _reportHandler.CancelAsync(bot, query);
+                    break;
+
+                case "report_subscription":
+                    await _reportSubscriptionHandler.ShowAsync(bot, query);
+                    break;
+
+                case "report_subscription_setup":
+                    await _reportSubscriptionHandler.StartSetupAsync(bot, query);
+                    break;
+
+                case "report_subscription_disable":
+                    await _reportSubscriptionHandler.DisableAsync(bot, query);
                     break;
 
                 case "create_family":

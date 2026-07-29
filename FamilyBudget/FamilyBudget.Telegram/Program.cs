@@ -10,6 +10,7 @@ using FamilyBudget.Infrastructure.Repositories;
 using FamilyBudget.Telegram.Bot;
 using FamilyBudget.Telegram.Handlers;
 using FamilyBudget.Telegram.Receipts;
+using FamilyBudget.Telegram.Reports;
 using FamilyBudget.Telegram.State;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -56,6 +57,7 @@ builder.Services.AddAutoMapper(typeof(SavingsContributionMappingProfile));
 builder.Services.AddAutoMapper(typeof(SavingsWithdrawalMappingProfile));
 builder.Services.AddAutoMapper(typeof(ReceiptMappingProfile));
 builder.Services.AddAutoMapper(typeof(FamilyInviteMappingProfile));
+builder.Services.AddAutoMapper(typeof(ReportSubscriptionMappingProfile));
 
 // ================= REPOSITORIES =================
 builder.Services.AddScoped<IFamilyRepository, FamilyRepository>();
@@ -67,6 +69,7 @@ builder.Services.AddScoped<IGoalRepository, GoalRepository>();
 builder.Services.AddScoped<ISavingsContributionRepository, SavingsContributionRepository>();
 builder.Services.AddScoped<ISavingsWithdrawalRepository, SavingsWithdrawalRepository>();
 builder.Services.AddScoped<IReceiptRepository, ReceiptRepository>();
+builder.Services.AddScoped<IReportSubscriptionRepository, ReportSubscriptionRepository>();
 builder.Services.AddScoped<IFinanceWriter, FinanceWriter>();
 builder.Services.AddScoped<IFamilyMembershipWriter, FamilyMembershipWriter>();
 
@@ -82,6 +85,7 @@ builder.Services.AddScoped<ISavingsService, SavingsService>();
 builder.Services.AddScoped<IReceiptService, ReceiptService>();
 builder.Services.AddScoped<IFamilyReportService, FamilyReportService>();
 builder.Services.AddScoped<IFamilyHistoryService, FamilyHistoryService>();
+builder.Services.AddScoped<IReportSubscriptionService, ReportSubscriptionService>();
 builder.Services.AddScoped<IChatClient>(_ =>
 {
     var baseUrl = Environment.GetEnvironmentVariable("OLLAMA_BASE_URL") ?? "http://localhost:11434/";
@@ -112,15 +116,18 @@ builder.Services.AddScoped<SavingsHandler>();
 builder.Services.AddScoped<ReceiptHandler>();
 builder.Services.AddScoped<FamilyHistoryHandler>();
 builder.Services.AddScoped<ReceiptHistoryHandler>();
+builder.Services.AddScoped<ReportSubscriptionHandler>();
 
 builder.Services.AddSingleton<ReceiptProcessingQueue>();
 builder.Services.AddHostedService<ReceiptProcessingWorker>();
+builder.Services.AddHostedService<ReportSubscriptionWorker>();
 
 builder.Services.AddSingleton<UserStateService>();
 builder.Services.AddSingleton<TempExpenseStorage>();
 builder.Services.AddSingleton<TempIncomeStorage>();
 builder.Services.AddSingleton<TempInviteStorage>();
 builder.Services.AddSingleton<TempRegistrationStorage>();
+builder.Services.AddSingleton<TempReportSubscriptionStorage>();
 
 var app = builder.Build();
 

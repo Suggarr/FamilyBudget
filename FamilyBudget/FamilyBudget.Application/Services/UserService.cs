@@ -47,6 +47,13 @@ namespace FamilyBudget.Application.Services
             return user is null ? null : _mapper.Map<UserDto>(user);
         }
 
+        public async Task<UserDto?> GetByIdAsync(Guid id)
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+
+            return user is null ? null : _mapper.Map<UserDto>(user);
+        }
+
         public async Task<List<UserDto>> GetByFamilyIdAsync(Guid familyId)
         {
             var users = await _userRepository.GetByFamilyIdAsync(familyId);
