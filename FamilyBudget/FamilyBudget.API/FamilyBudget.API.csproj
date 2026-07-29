@@ -18,8 +18,10 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.3" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.3" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.3" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.78.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
     <PackageReference Include="Telegram.Bot" Version="22.9.0" />
   </ItemGroup>
@@ -27,6 +29,7 @@
   <ItemGroup>
     <ProjectReference Include="..\FamilyBudget.Application\FamilyBudget.Application.csproj" />
     <ProjectReference Include="..\FamilyBudget.Core\FamilyBudget.Core.csproj" />
+    <ProjectReference Include="..\FamilyBudget.Infrastructure\FamilyBudget.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

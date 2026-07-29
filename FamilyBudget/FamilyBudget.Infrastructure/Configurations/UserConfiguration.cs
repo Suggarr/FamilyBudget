@@ -22,6 +22,12 @@ namespace FamilyBudget.Infrastructure.Configurations
             builder.HasIndex(u => u.TelegramId)
                 .IsUnique();
 
+            builder.Property(u => u.Balance)
+                .HasPrecision(18, 2);
+
+            builder.Property(u => u.TelegramUsername)
+                .HasMaxLength(FamilyBudget.Core.Models.User.MAX_TELEGRAM_USERNAME_LENGTH);
+
             builder.HasMany(u => u.Expenses)
                 .WithOne(u => u.User)
                 .HasForeignKey(u => u.UserId)

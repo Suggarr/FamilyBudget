@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FamilyBudget.Core.Models
+namespace FamilyBudget.Infrastructure.Entities
 {
     public class FamilyInviteEntity
     {
@@ -13,5 +13,7 @@ namespace FamilyBudget.Core.Models
         public string Code { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public DateTime ExpiresAt { get; set; }
+
+        public FamilyEntity Family { get; set; } = null!;
     }
 }

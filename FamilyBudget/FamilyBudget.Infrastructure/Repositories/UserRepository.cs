@@ -44,6 +44,12 @@ namespace FamilyBudget.Infrastructure.Repositories
             return _mapper.Map<List<User>>(userEntities);
         }
 
+        public async Task<User?> GetByIdAsync(Guid id)
+        {
+            var entity = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
+            return entity is null ? null : _mapper.Map<User>(entity);
+        }
+
         public async Task<Guid> AddAsync(User user)
         {
             var userEntity = _mapper.Map<UserEntity>(user);
@@ -72,7 +78,9 @@ namespace FamilyBudget.Infrastructure.Repositories
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(u => u.Name, u => user.Name)
                     .SetProperty(u => u.FamilyId, u => user.FamilyId)
-                    .SetProperty(u => u.TelegramId, u => user.TelegramId));
+                    .SetProperty(u => u.TelegramId, u => user.TelegramId)
+                    .SetProperty(u => u.Balance, u => user.Balance)
+                    .SetProperty(u => u.TelegramUsername, u => user.TelegramUsername));
         }
     }
 }

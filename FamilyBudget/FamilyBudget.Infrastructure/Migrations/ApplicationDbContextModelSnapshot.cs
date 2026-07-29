@@ -22,34 +22,6 @@ namespace FamilyBudget.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("FamilyBudget.Core.Models.FamilyInviteEntity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("FamilyId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Code")
-                        .IsUnique();
-
-                    b.ToTable("FamilyInvites");
-                });
-
             modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.ExpenseEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -100,6 +72,36 @@ namespace FamilyBudget.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Families");
+                });
+
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.FamilyInviteEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("FamilyId");
+
+                    b.ToTable("FamilyInvites");
                 });
 
             modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.GoalEntity", b =>
@@ -164,11 +166,207 @@ namespace FamilyBudget.Infrastructure.Migrations
                     b.ToTable("Incomes");
                 });
 
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.ReceiptEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
+                    b.Property<decimal>("DiscountAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid?>("ExpenseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("MerchantName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("PurchasedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RawResponse")
+                        .IsRequired()
+                        .HasMaxLength(100000)
+                        .HasColumnType("character varying(100000)");
+
+                    b.Property<string>("SourceFileId")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("TaxAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpenseId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("FamilyId", "PurchasedAt");
+
+                    b.ToTable("Receipts");
+                });
+
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.ReceiptItemEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("DiscountAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("numeric(18,3)");
+
+                    b.Property<Guid>("ReceiptId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReceiptId");
+
+                    b.ToTable("ReceiptItems");
+                });
+
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.ReportSubscriptionEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("NextRunAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<TimeOnly>("TimeOfDay")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.HasIndex("IsEnabled", "NextRunAt");
+
+                    b.ToTable("ReportSubscriptions");
+                });
+
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.SavingsContributionEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("FamilyId", "CreatedAt");
+
+                    b.ToTable("SavingsContributions");
+                });
+
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.SavingsWithdrawalEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("FamilyId", "CreatedAt");
+
+                    b.ToTable("SavingsWithdrawals");
+                });
+
             modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.UserEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<decimal>("Balance")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<Guid?>("FamilyId")
                         .HasColumnType("uuid");
@@ -180,6 +378,10 @@ namespace FamilyBudget.Infrastructure.Migrations
 
                     b.Property<long>("TelegramId")
                         .HasColumnType("bigint");
+
+                    b.Property<string>("TelegramUsername")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
 
                     b.HasKey("Id");
 
@@ -208,6 +410,17 @@ namespace FamilyBudget.Infrastructure.Migrations
                     b.Navigation("Family");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.FamilyInviteEntity", b =>
+                {
+                    b.HasOne("FamilyBudget.Infrastructure.Entities.FamilyEntity", "Family")
+                        .WithMany("FamilyInvites")
+                        .HasForeignKey("FamilyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Family");
                 });
 
             modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.GoalEntity", b =>
@@ -240,6 +453,92 @@ namespace FamilyBudget.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.ReceiptEntity", b =>
+                {
+                    b.HasOne("FamilyBudget.Infrastructure.Entities.ExpenseEntity", "Expense")
+                        .WithOne()
+                        .HasForeignKey("FamilyBudget.Infrastructure.Entities.ReceiptEntity", "ExpenseId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("FamilyBudget.Infrastructure.Entities.FamilyEntity", "Family")
+                        .WithMany("Receipts")
+                        .HasForeignKey("FamilyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FamilyBudget.Infrastructure.Entities.UserEntity", "User")
+                        .WithMany("Receipts")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Expense");
+
+                    b.Navigation("Family");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.ReceiptItemEntity", b =>
+                {
+                    b.HasOne("FamilyBudget.Infrastructure.Entities.ReceiptEntity", "Receipt")
+                        .WithMany("Items")
+                        .HasForeignKey("ReceiptId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Receipt");
+                });
+
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.ReportSubscriptionEntity", b =>
+                {
+                    b.HasOne("FamilyBudget.Infrastructure.Entities.UserEntity", "User")
+                        .WithOne("ReportSubscription")
+                        .HasForeignKey("FamilyBudget.Infrastructure.Entities.ReportSubscriptionEntity", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.SavingsContributionEntity", b =>
+                {
+                    b.HasOne("FamilyBudget.Infrastructure.Entities.FamilyEntity", "Family")
+                        .WithMany("SavingsContributions")
+                        .HasForeignKey("FamilyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FamilyBudget.Infrastructure.Entities.UserEntity", "User")
+                        .WithMany("SavingsContributions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Family");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.SavingsWithdrawalEntity", b =>
+                {
+                    b.HasOne("FamilyBudget.Infrastructure.Entities.FamilyEntity", "Family")
+                        .WithMany("SavingsWithdrawals")
+                        .HasForeignKey("FamilyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FamilyBudget.Infrastructure.Entities.UserEntity", "User")
+                        .WithMany("SavingsWithdrawals")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Family");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.UserEntity", b =>
                 {
                     b.HasOne("FamilyBudget.Infrastructure.Entities.FamilyEntity", "Family")
@@ -253,11 +552,24 @@ namespace FamilyBudget.Infrastructure.Migrations
                 {
                     b.Navigation("Expenses");
 
+                    b.Navigation("FamilyInvites");
+
                     b.Navigation("Goals");
 
                     b.Navigation("Incomes");
 
+                    b.Navigation("Receipts");
+
+                    b.Navigation("SavingsContributions");
+
+                    b.Navigation("SavingsWithdrawals");
+
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.ReceiptEntity", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("FamilyBudget.Infrastructure.Entities.UserEntity", b =>
@@ -265,6 +577,14 @@ namespace FamilyBudget.Infrastructure.Migrations
                     b.Navigation("Expenses");
 
                     b.Navigation("Incomes");
+
+                    b.Navigation("Receipts");
+
+                    b.Navigation("ReportSubscription");
+
+                    b.Navigation("SavingsContributions");
+
+                    b.Navigation("SavingsWithdrawals");
                 });
 #pragma warning restore 612, 618
         }

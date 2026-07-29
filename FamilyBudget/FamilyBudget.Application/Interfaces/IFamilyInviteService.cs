@@ -1,8 +1,15 @@
-﻿namespace FamilyBudget.Application.Interfaces
+﻿using FamilyBudget.Core.Dtos.Family;
+
+namespace FamilyBudget.Application.Interfaces
 {
     public interface IFamilyInviteService
     {
         Task<string> CreateInvite(Guid familyId);
-        Task<Guid?> UseInvite(string code);
+        Task<bool> IsInviteValid(string code);
+        Task<JoinFamilyResult> JoinFamilyAsync(
+            string code,
+            long telegramId,
+            string userName,
+            string? telegramUsername);
     }
 }

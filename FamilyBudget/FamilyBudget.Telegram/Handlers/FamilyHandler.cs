@@ -22,7 +22,7 @@ public class FamilyHandler
 
         var user = await _userService.GetByTelegramIdAsync(query.From!.Id);
 
-        if (user == null)
+        if (user == null || !user.FamilyId.HasValue)
         {
             await bot.SendMessage(
                 chatId,
@@ -30,7 +30,7 @@ public class FamilyHandler
             return;
         }
 
-        var members = await _userService.GetByFamilyIdAsync(user.FamilyId);
+        var members = await _userService.GetByFamilyIdAsync(user.FamilyId.Value);
 
         if (members.Count == 0)
         {
@@ -46,7 +46,10 @@ public class FamilyHandler
 
         foreach (var member in members)
         {
-            text += $"{i}. @{member.Name}\n";
+            var telegramUsername = string.IsNullOrWhiteSpace(member.TelegramUsername)
+                ? string.Empty
+                : $" (@{member.TelegramUsername})";
+            text += $"{i}. {member.Name}{telegramUsername}\n";
             i++;
         }
 

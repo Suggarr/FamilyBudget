@@ -2,7 +2,6 @@
 using FamilyBudget.Core.Dtos.Expense;
 using FamilyBudget.Core.Interfaces;
 using FamilyBudget.Core.Models;
-using FamilyBudget.Infrastructure.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,11 +13,15 @@ namespace FamilyBudget.Application.Services
     public class ExpenseService : IExpenseService
     {
         private readonly IExpenseRepository _expenseRepository;
+        private readonly IUserRepository _userRepository;
+        private readonly IFinanceWriter _financeWriter;
         private readonly IMapper _mapper;
 
-        public ExpenseService(IExpenseRepository expenseRepository, IMapper mapper)
+        public ExpenseService(IExpenseRepository expenseRepository, IUserRepository userRepository, IFinanceWriter financeWriter, IMapper mapper)
         {
             _expenseRepository = expenseRepository;
+            _userRepository = userRepository;
+            _financeWriter = financeWriter;
             _mapper = mapper;
         }
 
@@ -39,8 +42,18 @@ namespace FamilyBudget.Application.Services
             }
 
             var expense = expenseResult.Value;
+            var user = await _userRepository.GetByIdAsync(dto.UserId)
+                ?? throw new InvalidOperationException("User not found.");
 
-            return await _expenseRepository.AddAsync(expense);
+            if (user.FamilyId != dto.FamilyId)
+                throw new InvalidOperationException("User does not belong to this family.");
+
+            var debitResult = user.Debit(dto.Amount);
+            if (debitResult.IsFailure)
+                throw new InvalidOperationException(debitResult.Error);
+
+            await _financeWriter.AddExpenseAsync(expense, user);
+            return expense.Id;
         }
 
         public async Task<List<ExpenseDto>> GetByFamilyIdAsync(Guid familyId)
@@ -57,7 +70,17 @@ namespace FamilyBudget.Application.Services
 
         public async Task DeleteAsync(Guid id)
         {
-            await _expenseRepository.DeleteAsync(id);
+            var expense = await _expenseRepository.GetByIdAsync(id);
+            if (expense is null)
+                return;
+
+            var user = await _userRepository.GetByIdAsync(expense.UserId)
+                ?? throw new InvalidOperationException("User not found.");
+            var creditResult = user.Credit(expense.Amount);
+            if (creditResult.IsFailure)
+                throw new InvalidOperationException(creditResult.Error);
+
+            await _financeWriter.DeleteExpenseAsync(expense, user);
         }
     }
 }

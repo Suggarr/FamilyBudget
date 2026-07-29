@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace FamilyBudget.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -21,6 +21,27 @@ namespace FamilyBudget.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Families", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "FamilyInvites",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    FamilyId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Code = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FamilyInvites", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_FamilyInvites_Families_FamilyId",
+                        column: x => x.FamilyId,
+                        principalTable: "Families",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -49,7 +70,7 @@ namespace FamilyBudget.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    FamilyId = table.Column<Guid>(type: "uuid", nullable: false),
+                    FamilyId = table.Column<Guid>(type: "uuid", nullable: true),
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     TelegramId = table.Column<long>(type: "bigint", nullable: false)
                 },
@@ -60,8 +81,7 @@ namespace FamilyBudget.Infrastructure.Migrations
                         name: "FK_Users_Families_FamilyId",
                         column: x => x.FamilyId,
                         principalTable: "Families",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -132,6 +152,17 @@ namespace FamilyBudget.Infrastructure.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_FamilyInvites_Code",
+                table: "FamilyInvites",
+                column: "Code",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FamilyInvites_FamilyId",
+                table: "FamilyInvites",
+                column: "FamilyId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Goals_FamilyId",
                 table: "Goals",
                 column: "FamilyId");
@@ -163,6 +194,9 @@ namespace FamilyBudget.Infrastructure.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Expenses");
+
+            migrationBuilder.DropTable(
+                name: "FamilyInvites");
 
             migrationBuilder.DropTable(
                 name: "Goals");

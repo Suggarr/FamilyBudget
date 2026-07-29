@@ -17,6 +17,12 @@ namespace FamilyBudget.Telegram.State
         WaitingForIncomeAmount,
         WaitingForIncomeDescription,
         WaitingForInviteCode,
-        WaitingForInviteUserName
+        WaitingForInviteUserName,
+        WaitingForInitialBalance,
+        WaitingForSavingsContribution,
+        WaitingForSavingsWithdrawal,
+        WaitingForReceiptPhoto,
+        WaitingForReportPeriod,
+        WaitingForReportSubscriptionTime
     }
 }

@@ -8,10 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="file.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Include="appsettings.Development.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
@@ -43,6 +39,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FamilyBudget.Application\FamilyBudget.Application.csproj" />
+    <ProjectReference Include="..\FamilyBudget.Infrastructure\FamilyBudget.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

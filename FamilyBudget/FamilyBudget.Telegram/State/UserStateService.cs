@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,7 +8,7 @@ namespace FamilyBudget.Telegram.State
 {
     public class UserStateService
     {
-        private readonly Dictionary<long, UserState> _states = new();
+        private readonly ConcurrentDictionary<long, UserState> _states = new();
 
         public void Set(long id, UserState state) =>
             _states[id] = state;
@@ -17,6 +17,6 @@ namespace FamilyBudget.Telegram.State
             _states.TryGetValue(id, out var s) ? s : UserState.None;
 
         public void Clear(long id) =>
-            _states.Remove(id);
+            _states.TryRemove(id, out _);
     }
 }

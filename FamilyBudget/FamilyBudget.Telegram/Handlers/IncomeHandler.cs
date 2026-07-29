@@ -45,11 +45,11 @@ namespace FamilyBudget.Telegram.Handlers
             ITelegramBotClient bot,
             Message message)
         {
-            if (!decimal.TryParse(message.Text, out var amount))
+            if (!decimal.TryParse(message.Text, out var amount) || amount <= 0)
             {
                 await bot.SendMessage(
                     message.Chat.Id,
-                    "Введите корректную сумму.");
+                    "Введите корректную положительную сумму.");
                 return;
             }
 
@@ -71,14 +71,14 @@ namespace FamilyBudget.Telegram.Handlers
 
             var user = await _userService.GetByTelegramIdAsync(message.From.Id);
 
-            if (user is null)
+            if (user is null || !user.FamilyId.HasValue)
             {
                 await bot.SendMessage(message.Chat.Id, "Пользователь не найден.");
                 return;
             }
 
             var dto = new CreateIncomeDto(
-                user.FamilyId,
+                user.FamilyId.Value,
                 user.Id,
                 amount,
                 description,
@@ -91,7 +91,8 @@ namespace FamilyBudget.Telegram.Handlers
 
             await bot.SendMessage(
                 message.Chat.Id,
-                "💵 Доход добавлен!");
+                "💵 Доход добавлен!",
+                replyMarkup: Keyboards.KeyboardFactory.MainMenu());
         }
     }
 }

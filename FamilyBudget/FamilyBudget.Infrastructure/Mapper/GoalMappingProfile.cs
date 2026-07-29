@@ -14,7 +14,7 @@ namespace FamilyBudget.Infrastructure.Mapper
         public GoalMappingProfile()
         {
             CreateMap<GoalEntity, Goal>()
-                .ConstructUsing(g => Goal.Create(g.Id, g.FamilyId, g.Title, g.CurrentAmount, g.TargetAmount).Value);
+                .ConstructUsing(g => Goal.Create(g.Id, g.FamilyId, g.Title, g.TargetAmount, g.CurrentAmount).Value);
             CreateMap<Goal, GoalEntity>();
         }
     }

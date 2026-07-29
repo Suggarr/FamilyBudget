@@ -18,6 +18,10 @@ namespace FamilyBudget.Telegram.Bot
         private readonly IUserService _userService; 
         private readonly IncomeHandler _incomeHandler;
         private readonly InviteHandler _inviteHandler;
+        private readonly InitialBalanceHandler _initialBalanceHandler;
+        private readonly SavingsHandler _savingsHandler;
+        private readonly ReportHandler _reportHandler;
+        private readonly ReportSubscriptionHandler _reportSubscriptionHandler;
 
         public MessageRouter(
             UserStateService state,
@@ -26,7 +30,11 @@ namespace FamilyBudget.Telegram.Bot
             RegistrationHandler registrationHandler,
             IUserService userService,
             IncomeHandler incomeHandler,
-            InviteHandler inviteHandler)
+            InviteHandler inviteHandler,
+            InitialBalanceHandler initialBalanceHandler,
+            SavingsHandler savingsHandler,
+            ReportHandler reportHandler,
+            ReportSubscriptionHandler reportSubscriptionHandler)
         {
             _state = state;
             _storage = storage;
@@ -35,6 +43,10 @@ namespace FamilyBudget.Telegram.Bot
             _userService = userService;
             _incomeHandler = incomeHandler;
             _inviteHandler = inviteHandler;
+            _initialBalanceHandler = initialBalanceHandler;
+            _savingsHandler = savingsHandler;
+            _reportHandler = reportHandler;
+            _reportSubscriptionHandler = reportSubscriptionHandler;
         }
 
         public async Task RouteAsync(
@@ -59,13 +71,17 @@ namespace FamilyBudget.Telegram.Bot
                     await _inviteHandler.HandleInviteCodeMessageAsync(bot, message);
                     return;
 
+                case UserState.WaitingForInitialBalance:
+                    await _initialBalanceHandler.HandleBalanceAsync(bot, message);
+                    return;
+
                 case UserState.WaitingForExpenseAmount:
 
-                    if (!decimal.TryParse(message.Text, out var amount))
+                    if (!decimal.TryParse(message.Text, out var amount) || amount <= 0)
                     {
                         await bot.SendMessage(
                             message.Chat.Id,
-                            "Введите корректную сумму");
+                            "Введите корректную положительную сумму");
                         return;
                     }
 
@@ -108,6 +124,22 @@ namespace FamilyBudget.Telegram.Bot
 
                 case UserState.WaitingForIncomeDescription:
                     await _incomeHandler.HandleDescriptionAsync(bot, message);
+                    break;
+
+                case UserState.WaitingForSavingsContribution:
+                    await _savingsHandler.HandleContributionAsync(bot, message);
+                    break;
+
+                case UserState.WaitingForSavingsWithdrawal:
+                    await _savingsHandler.HandleWithdrawalAsync(bot, message);
+                    break;
+
+                case UserState.WaitingForReportPeriod:
+                    await _reportHandler.HandleCustomPeriodAsync(bot, message);
+                    break;
+
+                case UserState.WaitingForReportSubscriptionTime:
+                    await _reportSubscriptionHandler.HandleTimeAsync(bot, message);
                     break;
 
             }

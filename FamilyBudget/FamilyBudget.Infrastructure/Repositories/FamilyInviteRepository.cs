@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using FamilyBudget.Core.Interfaces;
 using FamilyBudget.Core.Models;
+using FamilyBudget.Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

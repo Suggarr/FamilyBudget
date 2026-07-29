@@ -18,6 +18,11 @@ namespace FamilyBudget.Infrastructure.Configurations
             builder.Property(f => f.Name)
                 .IsRequired()
                 .HasMaxLength(150);
+
+            builder.HasMany(f => f.FamilyInvites)
+            .WithOne(fi => fi.Family)
+            .HasForeignKey(fi => fi.FamilyId)
+            .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

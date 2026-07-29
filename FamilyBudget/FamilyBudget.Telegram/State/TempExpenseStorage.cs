@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,8 +8,8 @@ namespace FamilyBudget.Telegram.State
 {
     public class TempExpenseStorage
     {
-        private readonly Dictionary<long, decimal> _amounts = new();
-        private readonly Dictionary<long, string> _descriptions = new();
+        private readonly ConcurrentDictionary<long, decimal> _amounts = new();
+        private readonly ConcurrentDictionary<long, string> _descriptions = new();
 
         public void SaveAmount(long id, decimal amount) =>
             _amounts[id] = amount;
@@ -25,8 +25,8 @@ namespace FamilyBudget.Telegram.State
 
         public void Clear(long id)
         {
-            _amounts.Remove(id);
-            _descriptions.Remove(id);
+            _amounts.TryRemove(id, out _);
+            _descriptions.TryRemove(id, out _);
         }
     }
 }
