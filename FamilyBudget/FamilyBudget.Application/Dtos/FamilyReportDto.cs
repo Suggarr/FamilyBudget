@@ -1,4 +1,6 @@
-﻿namespace FamilyBudget.Application.Dtos
+﻿using FamilyBudget.Application.Dtos.Savings;
+
+namespace FamilyBudget.Application.Dtos
 {
     public record FamilyReportDto(
         DateTime? StartDate,
@@ -8,6 +10,9 @@
         decimal NetAmount,
         decimal ExpensePercent,
         string? TopCategory,
-        decimal? TopCategoryAmount
+        decimal? TopCategoryAmount,
+        IReadOnlyList<CategoryStatisticDto> Categories,
+        IReadOnlyList<MemberStatisticDto> Members,
+        SavingsStatisticDto Savings
     );
 }

@@ -159,6 +159,22 @@ public sealed class ReportHandler
         var topCategory = report.TopCategory is null
             ? "Нет расходов"
             : $"{CategoryName(report.TopCategory)} — {report.TopCategoryAmount:0.00} BYN";
+        var categories = report.Categories.Count == 0
+            ? "Нет расходов"
+            : string.Join(
+                '\n',
+                report.Categories.Select(category =>
+                    $"• {CategoryName(category.Category.ToString())}: " +
+                    $"{category.Amount:0.00} BYN ({category.Percent:0.00} %)"));
+        var members = report.Members.Count == 0
+            ? "Нет участников"
+            : string.Join(
+                "\n\n",
+                report.Members.Select(member =>
+                    $"👤 {member.MemberName}\n" +
+                    $"  Доходы: {member.TotalIncomes:0.00} BYN\n" +
+                    $"  Расходы: {member.TotalExpenses:0.00} BYN\n" +
+                    $"  Разница: {member.NetAmount:0.00} BYN"));
 
         return $"""
                📊 Семейный отчёт {periodTitle}
@@ -170,6 +186,18 @@ public sealed class ReportHandler
 
                🏆 Больше всего потрачено:
                {topCategory}
+
+               📂 Расходы по категориям:
+               {categories}
+
+               👥 Статистика участников:
+               {members}
+
+               🏦 Копилка:
+               ➕ Внесено за период: {report.Savings.PeriodContributions:0.00} BYN
+               ➖ Снято за период: {report.Savings.PeriodWithdrawals:0.00} BYN
+               📊 Изменение за период: {report.Savings.PeriodNetChange:0.00} BYN
+               💰 Текущий остаток: {report.Savings.CurrentBalance:0.00} BYN
                """;
     }
 
