@@ -1,18 +1,13 @@
 ﻿using FamilyBudget.Application;
 using FamilyBudget.Application.Interfaces;
 using FamilyBudget.Application.Services;
-using FamilyBudget.Core.Interfaces;
-using FamilyBudget.Infrastructure;
 using FamilyBudget.Infrastructure.AI;
 using FamilyBudget.Infrastructure.Configuration;
-using FamilyBudget.Infrastructure.Mapper;
-using FamilyBudget.Infrastructure.Repositories;
 using FamilyBudget.Telegram.Bot;
 using FamilyBudget.Telegram.Handlers;
 using FamilyBudget.Telegram.Receipts;
 using FamilyBudget.Telegram.Reports;
 using FamilyBudget.Telegram.State;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -20,6 +15,8 @@ using Microsoft.Extensions.AI;
 using OllamaSharp;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
+using FamilyBudget.Persistence;
+using FamilyBudget.Core.Interfaces;
 
 EnvironmentFileLoader.Load();
 var builder = Host.CreateApplicationBuilder(args);
@@ -28,11 +25,8 @@ var connectionString = builder.Configuration.GetConnectionString("FamilyBudgetDb
 if (string.IsNullOrWhiteSpace(connectionString))
     throw new InvalidOperationException("ConnectionStrings__FamilyBudgetDbContext is not configured.");
 
-// ================= DATABASE =================
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(
-        connectionString
-    ));
+// ================= PERSISTENCE =================
+builder.Services.AddPersistence(connectionString);
 
 var httpClient = new HttpClient
 {
@@ -47,31 +41,7 @@ if (string.IsNullOrWhiteSpace(telegramToken))
 builder.Services.AddSingleton<ITelegramBotClient>(new TelegramBotClient(telegramToken, httpClient));
 
 // ================= AUTOMAPPER =================
-builder.Services.AddAutoMapper(typeof(UserMappingProfile));
-builder.Services.AddAutoMapper(typeof(FamilyMappingProfile));
 builder.Services.AddAutoMapper(typeof(Mappings));
-builder.Services.AddAutoMapper(typeof(IncomeMappingProfile));
-builder.Services.AddAutoMapper(typeof(ExpenseMappingProfile));
-builder.Services.AddAutoMapper(typeof(GoalMappingProfile));
-builder.Services.AddAutoMapper(typeof(SavingsContributionMappingProfile));
-builder.Services.AddAutoMapper(typeof(SavingsWithdrawalMappingProfile));
-builder.Services.AddAutoMapper(typeof(ReceiptMappingProfile));
-builder.Services.AddAutoMapper(typeof(FamilyInviteMappingProfile));
-builder.Services.AddAutoMapper(typeof(ReportSubscriptionMappingProfile));
-
-// ================= REPOSITORIES =================
-builder.Services.AddScoped<IFamilyRepository, FamilyRepository>();
-builder.Services.AddScoped<IFamilyInviteRepository, FamilyInviteRepository>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
-builder.Services.AddScoped<IIncomeRepository, IncomeRepository>();
-builder.Services.AddScoped<IGoalRepository, GoalRepository>();
-builder.Services.AddScoped<ISavingsContributionRepository, SavingsContributionRepository>();
-builder.Services.AddScoped<ISavingsWithdrawalRepository, SavingsWithdrawalRepository>();
-builder.Services.AddScoped<IReceiptRepository, ReceiptRepository>();
-builder.Services.AddScoped<IReportSubscriptionRepository, ReportSubscriptionRepository>();
-builder.Services.AddScoped<IFinanceWriter, FinanceWriter>();
-builder.Services.AddScoped<IFamilyMembershipWriter, FamilyMembershipWriter>();
 
 // ================= SERVICES =================
 builder.Services.AddScoped<IFamilyService, FamilyService>();
