@@ -1,0 +1,39 @@
+using FamilyBudget.Persistence.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace FamilyBudget.Persistence.Configurations
+{
+    public class IncomeConfiguration : IEntityTypeConfiguration<IncomeEntity>
+    {
+        public void Configure(EntityTypeBuilder<IncomeEntity> builder)
+        {
+            builder.HasKey(i => i.Id);
+
+            builder.Property(i => i.Amount)
+                .HasPrecision(18, 2)
+                .IsRequired();
+
+            builder.Property(i => i.Source)
+                .HasMaxLength(300);
+
+            builder.Property(i => i.Date)
+                .IsRequired();
+
+            builder.HasOne(i => i.User)
+                .WithMany(i => i.Incomes)
+                .HasForeignKey(i => i.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(i => i.Family)
+                .WithMany(u => u.Incomes)
+                .HasForeignKey(i => i.FamilyId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
+    }
+}

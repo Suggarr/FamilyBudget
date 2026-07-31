@@ -1,52 +1,44 @@
-//using FamilyBudget.Application.Interfaces;
-//using FamilyBudget.Application.Services;
-//using FamilyBudget.Core.Interfaces;
-//using FamilyBudget.Infrastructure;
-//using FamilyBudget.Infrastructure.Configuration;
-//using FamilyBudget.Infrastructure.Repositories;
-//using Microsoft.EntityFrameworkCore;
+using FamilyBudget.Application;
+using FamilyBudget.Infrastructure;
+using FamilyBudget.Infrastructure.Configuration;
+using FamilyBudget.Persistence;
+using FamilyBudget.Presentation.Telegram;
 
-//EnvironmentFileLoader.Load();
-//var builder = WebApplication.CreateBuilder(args);
+EnvironmentFileLoader.Load();
 
-//var connectionString = builder.Configuration.GetConnectionString("FamilyBudgetDbContext");
-//if (string.IsNullOrWhiteSpace(connectionString))
-//    throw new InvalidOperationException("ConnectionStrings__FamilyBudgetDbContext is not configured.");
+var builder = WebApplication.CreateBuilder(args);
 
-//// Add services to the container.
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 
-//builder.Services.AddControllers();
-//// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-//builder.Services.AddEndpointsApiExplorer();
-//builder.Services.AddSwaggerGen();
+var connectionString = builder.Configuration.GetConnectionString("FamilyBudgetDbContext");
+if (string.IsNullOrWhiteSpace(connectionString))
+    throw new InvalidOperationException("ConnectionStrings__FamilyBudgetDbContext is not configured.");
 
-//builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
+var telegramToken = Environment.GetEnvironmentVariable("TELEGRAM_BOT_TOKEN");
+if (string.IsNullOrWhiteSpace(telegramToken))
+    throw new InvalidOperationException("TELEGRAM_BOT_TOKEN is not configured.");
 
-//builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure();
+builder.Services.AddPersistence(connectionString);
+builder.Services.AddTelegramBot(telegramToken);
 
-//builder.Services.AddScoped<IFamilyRepository, FamilyRepository>();
-//builder.Services.AddScoped<IUserRepository, UserRepository>();
-//builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
-//builder.Services.AddScoped<IIncomeRepository, IncomeRepository>();
-//builder.Services.AddScoped<IGoalRepository, GoalRepository>();
-//builder.Services.AddScoped<IFamilyService, FamilyService>();
-//builder.Services.AddScoped<IUserService, UserService>();
-//builder.Services.AddScoped<IExpenseService, ExpenseService>();
-//builder.Services.AddScoped<IIncomeService, IncomeService>();
-//builder.Services.AddScoped<IGoalService, GoalService>();
-//var app = builder.Build();
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
-//// Configure the HTTP request pipeline.
-//if (app.Environment.IsDevelopment())
-//{
-//    app.UseSwagger();
-//    app.UseSwaggerUI();
-//}
+var app = builder.Build();
 
-//app.UseHttpsRedirection();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
-//app.UseAuthorization();
+app.UseHttpsRedirection();
+app.UseAuthorization();
+app.MapControllers();
 
-//app.MapControllers();
-
-//app.Run();
+app.Run();
