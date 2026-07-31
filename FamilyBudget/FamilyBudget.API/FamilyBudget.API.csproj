@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
@@ -15,6 +14,7 @@
     <ProjectReference Include="..\FamilyBudget.Application\FamilyBudget.Application.csproj" />
     <ProjectReference Include="..\FamilyBudget.Infrastructure\FamilyBudget.Infrastructure.csproj" />
     <ProjectReference Include="..\FamilyBudget.Persistence\FamilyBudget.Persistence.csproj" />
+    <ProjectReference Include="..\FamilyBudget.Presentation.Telegram\FamilyBudget.Presentation.Telegram.csproj" />
   </ItemGroup>
 
 </Project>

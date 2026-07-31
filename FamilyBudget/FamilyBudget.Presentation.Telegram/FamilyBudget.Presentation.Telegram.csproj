@@ -7,12 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="12.0.0" />
-    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.3" />
+    <PackageReference Include="Telegram.Bot" Version="22.9.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\FamilyBudget.Application\FamilyBudget.Application.csproj" />
     <ProjectReference Include="..\FamilyBudget.Core\FamilyBudget.Core.csproj" />
   </ItemGroup>
 
