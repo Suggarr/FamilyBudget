@@ -19,8 +19,8 @@ services:
     image: ollama/ollama:latest
     gpus: all
     environment:
-      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen3.5:4b}
-      OLLAMA_CONTEXT_LENGTH: "${OLLAMA_CONTEXT_LENGTH:-8192}"
+      OLLAMA_MODEL: ${OLLAMA_MODEL:?OLLAMA_MODEL must be set}
+      OLLAMA_CONTEXT_LENGTH: "${OLLAMA_CONTEXT_LENGTH:-12288}"
     entrypoint: ["/bin/sh", "-c"]
     command: ["ollama serve & server_pid=$$!; until ollama list >/dev/null 2>&1; do sleep 1; done; ollama pull \"$${OLLAMA_MODEL}\"; wait $$server_pid"]
     ports:
@@ -31,7 +31,7 @@ services:
       - mynetwork
     healthcheck:
       test: ["CMD", "ollama", "list"]
-      interval: 5s
+      interval: 30s
       timeout: 5s
       retries: 20
     restart: unless-stopped
