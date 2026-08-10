@@ -18,6 +18,10 @@ namespace FamilyBudget.Persistence
         public DbSet<ReceiptEntity> Receipts { get; set; }
         public DbSet<ReceiptItemEntity> ReceiptItems { get; set; }
         public DbSet<ReportSubscriptionEntity> ReportSubscriptions { get; set; }
+        public DbSet<AccountEntity> Accounts { get; set; }
+        public DbSet<LocalCredentialEntity> LocalCredentials { get; set; }
+        public DbSet<AuthSessionEntity> AuthSessions { get; set; }
+        public DbSet<RefreshTokenEntity> RefreshTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

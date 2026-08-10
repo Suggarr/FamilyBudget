@@ -21,8 +21,12 @@ public static class DependencyInjection
                 Timeout = TimeSpan.FromMinutes(5)
             };
 
-            var model = Environment.GetEnvironmentVariable("OLLAMA_MODEL")
-                ?? "qwen3.5:4b";
+            var model = Environment.GetEnvironmentVariable("OLLAMA_MODEL");
+            if (string.IsNullOrWhiteSpace(model))
+            {
+                throw new InvalidOperationException(
+                    "OLLAMA_MODEL environment variable is required.");
+            }
 
             return new OllamaApiClient(client, model, null);
         });
