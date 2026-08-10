@@ -9,7 +9,7 @@ namespace FamilyBudget.Persistence.Mapper
         public UserMappingProfile()
         {
             CreateMap<UserEntity, User>()
-                .ConstructUsing(u => User.Create(u.Id, u.FamilyId, u.Name, u.TelegramId, u.Balance, u.TelegramUsername).Value);
+                .ConstructUsing(u => User.Create(u.Id, u.FamilyId, u.Name, u.Balance).Value);
 
             CreateMap<User, UserEntity>();
         }

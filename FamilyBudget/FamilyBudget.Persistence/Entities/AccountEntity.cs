@@ -8,5 +8,7 @@ public sealed class AccountEntity
     public DateTimeOffset? DisabledAtUtc { get; set; }
 
     public LocalCredentialEntity? LocalCredential { get; set; }
+    public UserEntity? User { get; set; }
     public ICollection<AuthSessionEntity> Sessions { get; set; } = [];
+    public ICollection<ExternalLoginEntity> ExternalLogins { get; set; } = [];
 }

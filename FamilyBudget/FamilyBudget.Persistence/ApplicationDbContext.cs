@@ -22,6 +22,7 @@ namespace FamilyBudget.Persistence
         public DbSet<LocalCredentialEntity> LocalCredentials { get; set; }
         public DbSet<AuthSessionEntity> AuthSessions { get; set; }
         public DbSet<RefreshTokenEntity> RefreshTokens { get; set; }
+        public DbSet<ExternalLoginEntity> ExternalLogins { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

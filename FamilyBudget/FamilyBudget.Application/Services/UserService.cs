@@ -1,105 +1,166 @@
-﻿using AutoMapper;
+using System.Globalization;
 using FamilyBudget.Application.Interfaces;
 using FamilyBudget.Core.Dtos.User;
+using FamilyBudget.Core.Enums;
 using FamilyBudget.Core.Interfaces;
 using FamilyBudget.Core.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using FamilyBudget.Core.Models.Auth;
 
-namespace FamilyBudget.Application.Services
+namespace FamilyBudget.Application.Services;
+
+public sealed class UserService : IUserService
 {
-    public class UserService : IUserService
+    private readonly IUserRepository _userRepository;
+    private readonly IExternalLoginRepository _externalLoginRepository;
+
+    public UserService(
+        IUserRepository userRepository,
+        IExternalLoginRepository externalLoginRepository)
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IMapper _mapper;
+        _userRepository = userRepository;
+        _externalLoginRepository = externalLoginRepository;
+    }
 
-        public UserService(IUserRepository userRepository, IMapper mapper)
+    public async Task<UserDto?> GetByTelegramIdAsync(long telegramId)
+    {
+        var providerSubject = ToTelegramSubject(telegramId);
+        var user = await _userRepository.GetByExternalLoginAsync(
+            ExternalLoginProvider.Telegram,
+            providerSubject);
+
+        if (user is null)
         {
-            _userRepository = userRepository;
-            _mapper = mapper;
+            return null;
         }
 
-        public async Task<Guid> AddUserAsync(CreateUserDto createUserDto)
+        var login = await _externalLoginRepository.GetAsync(
+            ExternalLoginProvider.Telegram,
+            providerSubject);
+
+        return ToDto(user, login);
+    }
+
+    public async Task<UserDto?> GetByIdAsync(Guid id)
+    {
+        var user = await _userRepository.GetByIdAsync(id);
+        if (user is null)
         {
-            var userResult = User.Create(
-                Guid.NewGuid(),
-                createUserDto.FamilyId,
-                createUserDto.Name,
-                createUserDto.TelegramId
-            );
-
-            if (userResult.IsFailure)
-            {
-                throw new Exception(userResult.Error);
-            }
-
-            var user = userResult.Value;
-            return await _userRepository.AddAsync(user);
+            return null;
         }
 
-        public async Task<UserDto?> GetByTelegramIdAsync(long telegramId)
-        {
-            var user = await _userRepository.GetByTelegramIdAsync(telegramId);
+        var login = await _externalLoginRepository.GetByAccountIdAsync(
+            id,
+            ExternalLoginProvider.Telegram);
 
-            return user is null ? null : _mapper.Map<UserDto>(user);
+        return ToDto(user, login);
+    }
+
+    public async Task<List<UserDto>> GetByFamilyIdAsync(Guid familyId)
+    {
+        var users = await _userRepository.GetByFamilyIdAsync(familyId);
+        var logins = await _externalLoginRepository.GetByAccountIdsAsync(
+            users.Select(user => user.Id).ToArray(),
+            ExternalLoginProvider.Telegram);
+        var loginsByAccountId = logins.ToDictionary(login => login.AccountId);
+
+        return users
+            .Select(user => ToDto(
+                user,
+                loginsByAccountId.GetValueOrDefault(user.Id)))
+            .ToList();
+    }
+
+    public async Task LeaveFamily(long telegramId)
+    {
+        var user = await FindTelegramUserAsync(telegramId);
+        if (user is null)
+        {
+            return;
         }
 
-        public async Task<UserDto?> GetByIdAsync(Guid id)
-        {
-            var user = await _userRepository.GetByIdAsync(id);
+        user.LeaveFamily();
+        await _userRepository.UpdateAsync(user);
+    }
 
-            return user is null ? null : _mapper.Map<UserDto>(user);
+    public async Task SetBalanceAsync(long telegramId, decimal balance)
+    {
+        var user = await FindTelegramUserAsync(telegramId)
+            ?? throw new InvalidOperationException("User not found.");
+
+        var result = user.SetBalance(balance);
+        if (result.IsFailure)
+        {
+            throw new InvalidOperationException(result.Error);
         }
 
-        public async Task<List<UserDto>> GetByFamilyIdAsync(Guid familyId)
+        await _userRepository.UpdateAsync(user);
+    }
+
+    public async Task UpdateTelegramUsernameAsync(
+        long telegramId,
+        string? telegramUsername)
+    {
+        var user = await FindTelegramUserAsync(telegramId);
+        if (user is null)
         {
-            var users = await _userRepository.GetByFamilyIdAsync(familyId);
-            return _mapper.Map<List<UserDto>>(users);
+            return;
         }
 
-        public async Task DeleteAsync(Guid id)
+        var providerSubject = ToTelegramSubject(telegramId);
+        var login = await _externalLoginRepository.GetAsync(
+            ExternalLoginProvider.Telegram,
+            providerSubject);
+
+        if (login is null)
         {
-            await _userRepository.DeleteAsync(id);
+            return;
         }
 
-        public async Task LeaveFamily(long telegramId)
+        var result = login.Touch(DateTimeOffset.UtcNow, telegramUsername);
+        if (result.IsFailure)
         {
-            var user = await _userRepository.GetByTelegramIdAsync(telegramId);
-
-            if (user == null)
-                return;
-
-            user.LeaveFamily();
-
-            await _userRepository.UpdateAsync(user);
+            throw new InvalidOperationException(result.Error);
         }
 
-        public async Task SetBalanceAsync(long telegramId, decimal balance)
+        await _externalLoginRepository.UpdateAsync(login);
+    }
+
+    private Task<User?> FindTelegramUserAsync(long telegramId) =>
+        _userRepository.GetByExternalLoginAsync(
+            ExternalLoginProvider.Telegram,
+            ToTelegramSubject(telegramId));
+
+    private static UserDto ToDto(User user, ExternalLogin? telegramLogin)
+    {
+        long? telegramId = null;
+        if (telegramLogin is not null &&
+            long.TryParse(
+                telegramLogin.ProviderSubject,
+                NumberStyles.None,
+                CultureInfo.InvariantCulture,
+                out var parsedTelegramId))
         {
-            var user = await _userRepository.GetByTelegramIdAsync(telegramId)
-                ?? throw new InvalidOperationException("User not found.");
-
-            var result = user.SetBalance(balance);
-            if (result.IsFailure)
-                throw new InvalidOperationException(result.Error);
-
-            await _userRepository.UpdateAsync(user);
+            telegramId = parsedTelegramId;
         }
 
-        public async Task UpdateTelegramUsernameAsync(long telegramId, string? telegramUsername)
+        return new UserDto(
+            user.Id,
+            user.FamilyId,
+            user.Name,
+            telegramId,
+            user.Balance,
+            telegramLogin?.ProviderUsername);
+    }
+
+    private static string ToTelegramSubject(long telegramId)
+    {
+        if (telegramId <= 0)
         {
-            var user = await _userRepository.GetByTelegramIdAsync(telegramId);
-            if (user is null || user.TelegramUsername == telegramUsername?.Trim().TrimStart('@'))
-                return;
-
-            var result = user.SetTelegramUsername(telegramUsername);
-            if (result.IsFailure)
-                throw new InvalidOperationException(result.Error);
-
-            await _userRepository.UpdateAsync(user);
+            throw new ArgumentOutOfRangeException(
+                nameof(telegramId),
+                "TelegramId must be greater than zero.");
         }
+
+        return telegramId.ToString(CultureInfo.InvariantCulture);
     }
 }

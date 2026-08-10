@@ -31,6 +31,7 @@ public static class DependencyInjection
         services.AddScoped<IFamilyMembershipWriter, FamilyMembershipWriter>();
         services.AddScoped<IAccountRepository, AccountRepository>();
         services.AddScoped<IAuthSessionRepository, AuthSessionRepository>();
+        services.AddScoped<IExternalLoginRepository, ExternalLoginRepository>();
 
         return services;
     }

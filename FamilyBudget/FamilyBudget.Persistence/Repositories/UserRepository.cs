@@ -1,86 +1,64 @@
 using AutoMapper;
+using FamilyBudget.Core.Enums;
 using FamilyBudget.Core.Interfaces;
 using FamilyBudget.Core.Models;
 using FamilyBudget.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace FamilyBudget.Persistence.Repositories
+namespace FamilyBudget.Persistence.Repositories;
+
+public sealed class UserRepository : IUserRepository
 {
-    public class UserRepository : IUserRepository
+    private readonly ApplicationDbContext _context;
+    private readonly IMapper _mapper;
+
+    public UserRepository(ApplicationDbContext context, IMapper mapper)
     {
-        private readonly ApplicationDbContext _context;
-        private readonly IMapper _mapper;
-
-        public UserRepository(ApplicationDbContext context, IMapper mapper)
-        {
-            _context = context;
-            _mapper = mapper;
-        }
-
-        public async Task<User?> GetByTelegramIdAsync(long telegramId)
-        {
-            var userEntity = await _context.Users
-                .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.TelegramId == telegramId);
-
-            return userEntity == null
-                ? null
-                : _mapper.Map<User>(userEntity);
-        }
-
-        public async Task<List<User>> GetByFamilyIdAsync(Guid familyId)
-        {
-            var userEntities = await _context.Users
-                .AsNoTracking()
-                .Where(u => u.FamilyId == familyId)
-                .ToListAsync();
-
-
-            return _mapper.Map<List<User>>(userEntities);
-        }
-
-        public async Task<User?> GetByIdAsync(Guid id)
-        {
-            var entity = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
-            return entity is null ? null : _mapper.Map<User>(entity);
-        }
-
-        public async Task<Guid> AddAsync(User user)
-        {
-            var userEntity = _mapper.Map<UserEntity>(user);
-
-            await _context.Users.AddAsync(userEntity);
-            await _context.SaveChangesAsync();
-
-            return user.Id;
-        }
-
-        public async Task<Guid> DeleteAsync(Guid id)
-        {
-            var userEntity = await _context.Users.FindAsync(id);
-            if (userEntity != null)
-            {
-                _context.Users.Remove(userEntity);
-                await _context.SaveChangesAsync();
-            }
-            return id;
-        }
-
-        public async Task UpdateAsync(User user)
-        {
-            await _context.Users
-                .Where(u => u.Id == user.Id)
-                .ExecuteUpdateAsync(s => s
-                    .SetProperty(u => u.Name, u => user.Name)
-                    .SetProperty(u => u.FamilyId, u => user.FamilyId)
-                    .SetProperty(u => u.TelegramId, u => user.TelegramId)
-                    .SetProperty(u => u.Balance, u => user.Balance)
-                    .SetProperty(u => u.TelegramUsername, u => user.TelegramUsername));
-        }
+        _context = context;
+        _mapper = mapper;
     }
+
+    public async Task<User?> GetByExternalLoginAsync(
+        ExternalLoginProvider provider,
+        string providerSubject)
+    {
+        var userEntity = await _context.Users
+            .AsNoTracking()
+            .Where(user => user.Account.DisabledAtUtc == null)
+            .Where(user => user.Account.ExternalLogins.Any(login =>
+                login.Provider == provider &&
+                login.ProviderSubject == providerSubject))
+            .SingleOrDefaultAsync();
+
+        return userEntity is null ? null : _mapper.Map<User>(userEntity);
+    }
+
+    public async Task<List<User>> GetByFamilyIdAsync(Guid familyId)
+    {
+        var userEntities = await _context.Users
+            .AsNoTracking()
+            .Where(user => user.FamilyId == familyId)
+            .ToListAsync();
+
+        return _mapper.Map<List<User>>(userEntities);
+    }
+
+    public async Task<User?> GetByIdAsync(Guid id)
+    {
+        var entity = await _context.Users
+            .AsNoTracking()
+            .Where(user => user.Account.DisabledAtUtc == null)
+            .Where(user => user.Id == id)
+            .SingleOrDefaultAsync();
+
+        return entity is null ? null : _mapper.Map<User>(entity);
+    }
+
+    public Task UpdateAsync(User user) =>
+        _context.Users
+            .Where(entity => entity.Id == user.Id)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(entity => entity.Name, user.Name)
+                .SetProperty(entity => entity.FamilyId, user.FamilyId)
+                .SetProperty(entity => entity.Balance, user.Balance));
 }

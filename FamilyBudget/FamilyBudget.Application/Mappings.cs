@@ -17,7 +17,6 @@ namespace FamilyBudget.Application
         {
             CreateMap<Expense, ExpenseDto>();
             CreateMap<Income, IncomeDto>();
-            CreateMap<User, UserDto>();
         }
     }
 }

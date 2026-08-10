@@ -82,7 +82,7 @@ public sealed class ReportSubscriptionWorker : BackgroundService
         var subscriptionService = serviceProvider.GetRequiredService<IReportSubscriptionService>();
 
         var user = await userService.GetByIdAsync(subscription.UserId);
-        if (user is null || !user.FamilyId.HasValue)
+        if (user is null || !user.FamilyId.HasValue || !user.TelegramId.HasValue)
         {
             await subscriptionService.DisableAsync(subscription.UserId);
             _logger.LogWarning(
@@ -102,7 +102,7 @@ public sealed class ReportSubscriptionWorker : BackgroundService
             report,
             $"за неделю до {reportEnd:dd.MM.yyyy HH:mm} UTC");
 
-        await SendInChunksAsync(user.TelegramId, message, cancellationToken);
+        await SendInChunksAsync(user.TelegramId.Value, message, cancellationToken);
         await subscriptionService.ScheduleNextRunAsync(subscription.UserId, DateTime.UtcNow);
 
         _logger.LogInformation(

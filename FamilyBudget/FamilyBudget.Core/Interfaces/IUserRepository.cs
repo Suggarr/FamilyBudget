@@ -1,14 +1,14 @@
-﻿using FamilyBudget.Core.Models;
+using FamilyBudget.Core.Enums;
+using FamilyBudget.Core.Models;
 
-namespace FamilyBudget.Core.Interfaces
+namespace FamilyBudget.Core.Interfaces;
+
+public interface IUserRepository
 {
-    public interface IUserRepository
-    {
-        Task<Guid> AddAsync(User user);
-        Task<Guid> DeleteAsync(Guid id);
-        Task<List<User>> GetByFamilyIdAsync(Guid familyId);
-        Task<User?> GetByIdAsync(Guid id);
-        Task<User?> GetByTelegramIdAsync(long telegramId);
-        Task UpdateAsync(User user);
-    }
+    Task<List<User>> GetByFamilyIdAsync(Guid familyId);
+    Task<User?> GetByIdAsync(Guid id);
+    Task<User?> GetByExternalLoginAsync(
+        ExternalLoginProvider provider,
+        string providerSubject);
+    Task UpdateAsync(User user);
 }

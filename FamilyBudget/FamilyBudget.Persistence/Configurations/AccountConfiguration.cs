@@ -28,5 +28,15 @@ public sealed class AccountConfiguration : IEntityTypeConfiguration<AccountEntit
             .WithOne(session => session.Account)
             .HasForeignKey(session => session.AccountId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(account => account.ExternalLogins)
+            .WithOne(login => login.Account)
+            .HasForeignKey(login => login.AccountId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(account => account.User)
+            .WithOne(user => user.Account)
+            .HasForeignKey<UserEntity>(user => user.Id)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
