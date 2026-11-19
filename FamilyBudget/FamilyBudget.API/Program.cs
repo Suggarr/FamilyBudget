@@ -3,6 +3,9 @@ using FamilyBudget.Infrastructure;
 using FamilyBudget.Infrastructure.Configuration;
 using FamilyBudget.Persistence;
 using FamilyBudget.Presentation.Telegram;
+using FamilyBudget.Infrastructure.Authentication;
+using System.Text;
+using FamilyBudget.API.Authentication;
 
 EnvironmentFileLoader.Load();
 
@@ -28,6 +31,7 @@ builder.Services.AddTelegramBot(telegramToken);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 var app = builder.Build();
 
@@ -35,9 +39,12 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.MapGet("/api/auth/check", () => Results.NoContent())
+    .RequireAuthorization();
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

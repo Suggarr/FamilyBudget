@@ -1,5 +1,6 @@
 using FamilyBudget.Core.Interfaces;
 using FamilyBudget.Infrastructure.AI;
+using FamilyBudget.Infrastructure.Authentication;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using OllamaSharp;
@@ -32,6 +33,8 @@ public static class DependencyInjection
         });
 
         services.AddScoped<IReceiptParser, OllamaReceiptParser>();
+        services.AddScoped<IPasswordHasher, IdentityPasswordHasher>();
+        services.AddScoped<ITokenProvider, TokenProvider>();
 
         return services;
     }

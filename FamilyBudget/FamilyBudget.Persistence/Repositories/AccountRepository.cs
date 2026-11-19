@@ -38,24 +38,6 @@ public sealed class AccountRepository : IAccountRepository
         return entity is null ? null : MapCredential(entity);
     }
 
-    public async Task AddAsync(
-        Account account,
-        LocalCredential credential,
-        CancellationToken cancellationToken = default)
-    {
-        if (account.Id != credential.AccountId)
-        {
-            throw new InvalidOperationException(
-                "Account and local credential must have the same AccountId.");
-        }
-
-        var accountEntity = MapAccount(account);
-        accountEntity.LocalCredential = MapCredential(credential);
-
-        await _context.Accounts.AddAsync(accountEntity, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
-    }
-
     public Task UpdateAsync(
         Account account,
         CancellationToken cancellationToken = default) =>
@@ -87,14 +69,6 @@ public sealed class AccountRepository : IAccountRepository
             entity.CreatedAtUtc,
             entity.DisabledAtUtc).Value;
 
-    private static AccountEntity MapAccount(Account account) => new()
-    {
-        Id = account.Id,
-        DisplayName = account.DisplayName,
-        CreatedAtUtc = account.CreatedAtUtc,
-        DisabledAtUtc = account.DisabledAtUtc
-    };
-
     private static LocalCredential MapCredential(LocalCredentialEntity entity) =>
         LocalCredential.Restore(
             entity.AccountId,
@@ -102,14 +76,4 @@ public sealed class AccountRepository : IAccountRepository
             entity.PasswordHash,
             entity.CreatedAtUtc,
             entity.PasswordChangedAtUtc).Value;
-
-    private static LocalCredentialEntity MapCredential(LocalCredential credential) => new()
-    {
-        AccountId = credential.AccountId,
-        Email = credential.Email,
-        NormalizedEmail = credential.NormalizedEmail,
-        PasswordHash = credential.PasswordHash,
-        CreatedAtUtc = credential.CreatedAtUtc,
-        PasswordChangedAtUtc = credential.PasswordChangedAtUtc
-    };
 }

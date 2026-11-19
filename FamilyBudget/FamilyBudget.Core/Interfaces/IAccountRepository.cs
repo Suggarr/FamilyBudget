@@ -8,9 +8,6 @@ public interface IAccountRepository
 
     Task<LocalCredential?> GetCredentialByNormalizedEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default);
 
-    Task AddAsync(Account account, LocalCredential credential,
-        CancellationToken cancellationToken = default);
-
     Task UpdateAsync(Account account, CancellationToken cancellationToken = default);
 
     Task UpdateCredentialAsync(LocalCredential credential, CancellationToken cancellationToken = default);
