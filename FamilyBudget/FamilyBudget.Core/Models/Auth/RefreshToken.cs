@@ -41,7 +41,7 @@ namespace FamilyBudget.Core.Models.Auth
                 return Result.Failure<RefreshToken>(validationToken.Error);
             }
 
-            var refreshToken = new RefreshToken(id, sessionId, tokenHash.Trim(),
+            var refreshToken = new RefreshToken(id, sessionId, validationToken.Value,
                 createdAtUtc, expiresAtUtc, null, null, null);
 
             return Result.Success<RefreshToken>(refreshToken);
@@ -93,7 +93,7 @@ namespace FamilyBudget.Core.Models.Auth
                 return Result.Failure<RefreshToken>("UsedAtUtc cannot exist without ReplacedByTokenId.");
             }
 
-            var refreshToken = new RefreshToken(id, sessionId, tokenHash.Trim(),
+            var refreshToken = new RefreshToken(id, sessionId, validationToken.Value,
                 createdAtUtc, expiresAtUtc, usedAtUtc, revokedAtUtc, replacedByTokenId);
 
             return Result.Success<RefreshToken>(refreshToken);
@@ -164,38 +164,38 @@ namespace FamilyBudget.Core.Models.Auth
             return Result.Success();
         }
 
-        private static Result ValidateToken(Guid id, Guid sessionId, string tokenHash,
+        private static Result<string> ValidateToken(Guid id, Guid sessionId, string tokenHash,
             DateTimeOffset createdAtUtc, DateTimeOffset expiresAtUtc)
         {
             var normalizedTokenHash = tokenHash?.Trim();
 
             if (id == Guid.Empty)
             {
-                return Result.Failure("Id cannot be empty.");
+                return Result.Failure<string>("Id cannot be empty.");
             }
 
             if (sessionId == Guid.Empty)
             {
-                return Result.Failure("SessionId cannot be empty.");
+                return Result.Failure<string>("SessionId cannot be empty.");
             }
 
             if (string.IsNullOrWhiteSpace(normalizedTokenHash))
             {
-                return Result.Failure("TokenHash cannot be empty.");
+                return Result.Failure<string>("TokenHash cannot be empty.");
             }
 
             if (createdAtUtc.Offset != TimeSpan.Zero ||
                 expiresAtUtc.Offset != TimeSpan.Zero)
             {
-                return Result.Failure("CreatedAtUtc and ExpiresAtUtc must be in UTC.");
+                return Result.Failure<string>("CreatedAtUtc and ExpiresAtUtc must be in UTC.");
             }
 
             if (createdAtUtc >= expiresAtUtc)
             {
-                return Result.Failure("CreatedAtUtc must be before ExpiresAtUtc.");
+                return Result.Failure<string>("CreatedAtUtc must be before ExpiresAtUtc.");
             }
 
-            return Result.Success();
+            return Result.Success(normalizedTokenHash);
         }
     }
 }

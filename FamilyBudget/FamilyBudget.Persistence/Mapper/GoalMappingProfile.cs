@@ -10,7 +10,8 @@ namespace FamilyBudget.Persistence.Mapper
         {
             CreateMap<GoalEntity, Goal>()
                 .ConstructUsing(g => Goal.Create(g.Id, g.FamilyId, g.Title, g.TargetAmount, g.CurrentAmount).Value);
-            CreateMap<Goal, GoalEntity>();
+            CreateMap<Goal, GoalEntity>()
+                .ForMember(entity => entity.Family, options => options.Ignore());
         }
     }
 }

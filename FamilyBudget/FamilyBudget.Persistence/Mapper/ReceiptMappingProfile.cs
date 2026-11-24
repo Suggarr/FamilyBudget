@@ -16,7 +16,13 @@ public class ReceiptMappingProfile : Profile
                 r.ExpenseId,
                 r.Status).Value);
         CreateMap<ReceiptItemEntity, ReceiptItem>().ConstructUsing(i => ReceiptItem.Create(i.Id, i.Name, i.Quantity, i.UnitPrice, i.DiscountAmount, i.TotalAmount).Value);
-        CreateMap<Receipt, ReceiptEntity>();
-        CreateMap<ReceiptItem, ReceiptItemEntity>();
+        CreateMap<Receipt, ReceiptEntity>()
+            .ForMember(entity => entity.Family, options => options.Ignore())
+            .ForMember(entity => entity.User, options => options.Ignore())
+            .ForMember(entity => entity.Expense, options => options.Ignore());
+        CreateMap<ReceiptItem, ReceiptItemEntity>()
+            // EF sets the parent FK when the item is added through ReceiptEntity.Items.
+            .ForMember(entity => entity.ReceiptId, options => options.Ignore())
+            .ForMember(entity => entity.Receipt, options => options.Ignore());
     }
 }

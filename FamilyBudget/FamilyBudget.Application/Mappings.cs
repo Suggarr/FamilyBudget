@@ -16,7 +16,8 @@ namespace FamilyBudget.Application
         public Mappings()
         {
             CreateMap<Expense, ExpenseDto>();
-            CreateMap<Income, IncomeDto>();
+            CreateMap<Income, IncomeDto>()
+                .ForCtorParam(nameof(IncomeDto.Description), options => options.MapFrom(income => income.Source));
         }
     }
 }

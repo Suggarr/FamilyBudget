@@ -10,6 +10,8 @@ public class SavingsContributionMappingProfile : Profile
     {
         CreateMap<SavingsContributionEntity, SavingsContribution>()
             .ConstructUsing(c => SavingsContribution.Create(c.Id, c.FamilyId, c.UserId, c.Amount, c.CreatedAt).Value);
-        CreateMap<SavingsContribution, SavingsContributionEntity>();
+        CreateMap<SavingsContribution, SavingsContributionEntity>()
+            .ForMember(entity => entity.Family, options => options.Ignore())
+            .ForMember(entity => entity.User, options => options.Ignore());
     }
 }

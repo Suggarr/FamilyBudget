@@ -49,12 +49,11 @@ public sealed class LocalCredential
             return Result.Failure<LocalCredential>(validation.Error);
         }
 
-        var normalizedEmail = NormalizeEmail(email);
         return Result.Success(new LocalCredential(
             accountId,
-            email.Trim(),
-            normalizedEmail,
-            passwordHash.Trim(),
+            validation.Value.Email,
+            validation.Value.NormalizedEmail,
+            validation.Value.PasswordHash,
             createdAtUtc,
             null));
     }
@@ -78,12 +77,11 @@ public sealed class LocalCredential
             return Result.Failure<LocalCredential>(validation.Error);
         }
 
-        var normalizedEmail = NormalizeEmail(email);
         return Result.Success(new LocalCredential(
             accountId,
-            email.Trim(),
-            normalizedEmail,
-            passwordHash.Trim(),
+            validation.Value.Email,
+            validation.Value.NormalizedEmail,
+            validation.Value.PasswordHash,
             createdAtUtc,
             passwordChangedAtUtc));
     }
@@ -121,7 +119,7 @@ public sealed class LocalCredential
 
     public static string NormalizeEmail(string email) => email.Trim().ToUpperInvariant();
 
-    private static Result Validate(
+    private static Result<(string Email, string NormalizedEmail, string PasswordHash)> Validate(
         Guid accountId,
         string email,
         string passwordHash,
@@ -133,39 +131,39 @@ public sealed class LocalCredential
 
         if (accountId == Guid.Empty)
         {
-            return Result.Failure("AccountId cannot be empty.");
+            return Result.Failure<(string Email, string NormalizedEmail, string PasswordHash)>("AccountId cannot be empty.");
         }
 
         if (string.IsNullOrWhiteSpace(normalizedEmail) ||
             normalizedEmail.Length > MaxEmailLength ||
             !MailAddress.TryCreate(normalizedEmail, out _))
         {
-            return Result.Failure("Email is invalid.");
+            return Result.Failure<(string Email, string NormalizedEmail, string PasswordHash)>("Email is invalid.");
         }
 
         if (string.IsNullOrWhiteSpace(normalizedPasswordHash))
         {
-            return Result.Failure("PasswordHash cannot be empty.");
+            return Result.Failure<(string Email, string NormalizedEmail, string PasswordHash)>("PasswordHash cannot be empty.");
         }
 
         if (normalizedPasswordHash.Length > MaxPasswordHashLength)
         {
-            return Result.Failure(
+            return Result.Failure<(string Email, string NormalizedEmail, string PasswordHash)>(
                 $"PasswordHash cannot be longer than {MaxPasswordHashLength} symbols.");
         }
 
         if (createdAtUtc.Offset != TimeSpan.Zero ||
             (passwordChangedAtUtc.HasValue && passwordChangedAtUtc.Value.Offset != TimeSpan.Zero))
         {
-            return Result.Failure("All DateTimeOffset values must be in UTC.");
+            return Result.Failure<(string Email, string NormalizedEmail, string PasswordHash)>("All DateTimeOffset values must be in UTC.");
         }
 
         if (passwordChangedAtUtc.HasValue && passwordChangedAtUtc.Value < createdAtUtc)
         {
-            return Result.Failure(
+            return Result.Failure<(string Email, string NormalizedEmail, string PasswordHash)>(
                 "PasswordChangedAtUtc cannot be before CreatedAtUtc.");
         }
 
-        return Result.Success();
+        return Result.Success((normalizedEmail, normalizedEmail.ToUpperInvariant(), normalizedPasswordHash));
     }
 }

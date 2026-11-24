@@ -10,7 +10,9 @@ namespace FamilyBudget.Persistence.Mapper
         {
             CreateMap<IncomeEntity, Income>()
                 .ConstructUsing(i => Income.Create(i.Id, i.FamilyId, i.UserId, i.Amount, i.Source, i.Date).Value);
-            CreateMap<Income, IncomeEntity>();
+            CreateMap<Income, IncomeEntity>()
+                .ForMember(entity => entity.Family, options => options.Ignore())
+                .ForMember(entity => entity.User, options => options.Ignore());
         }
     }
 }

@@ -81,7 +81,8 @@ public class Receipt
     {
         if (id == Guid.Empty || familyId == Guid.Empty || userId == Guid.Empty)
             return Result.Failure<Receipt>("Identifiers cannot be empty.");
-        if (string.IsNullOrWhiteSpace(currency) || currency.Trim().Length > MAX_CURRENCY_LENGTH)
+        var normalizedCurrency = currency?.Trim();
+        if (string.IsNullOrWhiteSpace(normalizedCurrency) || normalizedCurrency.Length > MAX_CURRENCY_LENGTH)
             return Result.Failure<Receipt>("Currency must be a valid three-letter code.");
         if (string.IsNullOrWhiteSpace(sourceFileId) || sourceFileId.Length > MAX_SOURCE_FILE_ID_LENGTH)
             return Result.Failure<Receipt>("Source file id is required.");
@@ -112,7 +113,7 @@ public class Receipt
             discountAmount,
             taxAmount,
             totalAmount,
-            currency.Trim().ToUpperInvariant(),
+            normalizedCurrency.ToUpperInvariant(),
             sourceFileId.Trim(),
             rawResponse,
             status,

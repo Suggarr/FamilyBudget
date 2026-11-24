@@ -60,8 +60,8 @@ public sealed class ExternalLogin
             id,
             accountId,
             provider,
-            providerSubject.Trim(),
-            NormalizeUsername(providerUsername),
+            validation.Value.Subject,
+            validation.Value.Username,
             createdAtUtc,
             createdAtUtc));
     }
@@ -93,8 +93,8 @@ public sealed class ExternalLogin
             id,
             accountId,
             provider,
-            providerSubject.Trim(),
-            NormalizeUsername(providerUsername),
+            validation.Value.Subject,
+            validation.Value.Username,
             createdAtUtc,
             lastSeenAtUtc));
     }
@@ -123,7 +123,7 @@ public sealed class ExternalLogin
         return Result.Success();
     }
 
-    private static Result Validate(
+    private static Result<(string Subject, string? Username)> Validate(
         Guid id,
         Guid accountId,
         ExternalLoginProvider provider,
@@ -137,47 +137,47 @@ public sealed class ExternalLogin
 
         if (id == Guid.Empty)
         {
-            return Result.Failure("Id cannot be empty.");
+            return Result.Failure<(string Subject, string? Username)>("Id cannot be empty.");
         }
 
         if (accountId == Guid.Empty)
         {
-            return Result.Failure("AccountId cannot be empty.");
+            return Result.Failure<(string Subject, string? Username)>("AccountId cannot be empty.");
         }
 
         if (!Enum.IsDefined(provider))
         {
-            return Result.Failure("External login provider is invalid.");
+            return Result.Failure<(string Subject, string? Username)>("External login provider is invalid.");
         }
 
         if (string.IsNullOrWhiteSpace(normalizedSubject))
         {
-            return Result.Failure("ProviderSubject cannot be empty.");
+            return Result.Failure<(string Subject, string? Username)>("ProviderSubject cannot be empty.");
         }
 
         if (normalizedSubject.Length > MaxProviderSubjectLength)
         {
-            return Result.Failure(
+            return Result.Failure<(string Subject, string? Username)>(
                 $"ProviderSubject cannot be longer than {MaxProviderSubjectLength} symbols.");
         }
 
         if (normalizedUsername?.Length > MaxProviderUsernameLength)
         {
-            return Result.Failure(
+            return Result.Failure<(string Subject, string? Username)>(
                 $"ProviderUsername cannot be longer than {MaxProviderUsernameLength} symbols.");
         }
 
         if (createdAtUtc.Offset != TimeSpan.Zero || lastSeenAtUtc.Offset != TimeSpan.Zero)
         {
-            return Result.Failure("All DateTimeOffset values must be in UTC.");
+            return Result.Failure<(string Subject, string? Username)>("All DateTimeOffset values must be in UTC.");
         }
 
         if (lastSeenAtUtc < createdAtUtc)
         {
-            return Result.Failure("LastSeenAtUtc cannot be before CreatedAtUtc.");
+            return Result.Failure<(string Subject, string? Username)>("LastSeenAtUtc cannot be before CreatedAtUtc.");
         }
 
-        return Result.Success();
+        return Result.Success((normalizedSubject, normalizedUsername));
     }
 
     private static string? NormalizeUsername(string? providerUsername)

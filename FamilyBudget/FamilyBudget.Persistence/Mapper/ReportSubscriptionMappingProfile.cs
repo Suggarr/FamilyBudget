@@ -11,7 +11,8 @@ namespace FamilyBudget.Persistence.Mapper
             CreateMap<ReportSubscriptionEntity, ReportSubscription>()
                 .ConstructUsing(rs => ReportSubscription.Create(rs.Id, rs.UserId, rs.IsEnabled, rs.DayOfWeek, rs.TimeOfDay, rs.NextRunAt).Value);
 
-            CreateMap<ReportSubscription, ReportSubscriptionEntity>();
+            CreateMap<ReportSubscription, ReportSubscriptionEntity>()
+                .ForMember(entity => entity.User, options => options.Ignore());
         }
     }
 }

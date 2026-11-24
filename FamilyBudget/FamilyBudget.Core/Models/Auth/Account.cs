@@ -37,7 +37,7 @@ public sealed class Account
 
         return Result.Success(new Account(
             id,
-            displayName.Trim(),
+            validation.Value,
             createdAtUtc,
             null));
     }
@@ -56,7 +56,7 @@ public sealed class Account
 
         return Result.Success(new Account(
             id,
-            displayName.Trim(),
+            validation.Value,
             createdAtUtc,
             disabledAtUtc));
     }
@@ -82,7 +82,7 @@ public sealed class Account
         return Result.Success();
     }
 
-    private static Result Validate(
+    private static Result<string> Validate(
         Guid id,
         string displayName,
         DateTimeOffset createdAtUtc,
@@ -92,31 +92,31 @@ public sealed class Account
 
         if (id == Guid.Empty)
         {
-            return Result.Failure("Id cannot be empty.");
+            return Result.Failure<string>("Id cannot be empty.");
         }
 
         if (string.IsNullOrWhiteSpace(normalizedDisplayName))
         {
-            return Result.Failure("DisplayName cannot be empty.");
+            return Result.Failure<string>("DisplayName cannot be empty.");
         }
 
         if (normalizedDisplayName.Length > MaxDisplayNameLength)
         {
-            return Result.Failure(
+            return Result.Failure<string>(
                 $"DisplayName cannot be longer than {MaxDisplayNameLength} symbols.");
         }
 
         if (createdAtUtc.Offset != TimeSpan.Zero ||
             (disabledAtUtc.HasValue && disabledAtUtc.Value.Offset != TimeSpan.Zero))
         {
-            return Result.Failure("All DateTimeOffset values must be in UTC.");
+            return Result.Failure<string>("All DateTimeOffset values must be in UTC.");
         }
 
         if (disabledAtUtc.HasValue && disabledAtUtc.Value < createdAtUtc)
         {
-            return Result.Failure("DisabledAtUtc cannot be before CreatedAtUtc.");
+            return Result.Failure<string>("DisabledAtUtc cannot be before CreatedAtUtc.");
         }
 
-        return Result.Success();
+        return Result.Success(normalizedDisplayName);
     }
 }

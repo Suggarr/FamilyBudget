@@ -47,7 +47,8 @@ namespace FamilyBudget.Core.Models.Auth
                 return Result.Failure<AuthSession>(validationSession.Error);
             }
 
-            var authSession = new AuthSession(id, accountId, deviceId.Trim(), deviceName.Trim(), createdAtUtc, lastSeenAtUtc, expiresAtUtc, revokedAtUtc, revocationReason);
+            var authSession = new AuthSession(id, accountId, validationSession.Value.DeviceId, validationSession.Value.DeviceName,
+                createdAtUtc, lastSeenAtUtc, expiresAtUtc, revokedAtUtc, revocationReason);
             return Result.Success(authSession);
         }
 
@@ -91,7 +92,8 @@ namespace FamilyBudget.Core.Models.Auth
                 return Result.Failure<AuthSession>("Revocation reason cannot exist without RevokedAtUtc.");
             }
 
-            var authSession = new AuthSession(id, accountId, deviceId.Trim(), deviceName.Trim(), createdAtUtc, lastSeenAtUtc, expiresAtUtc, revokedAtUtc, revocationReason);
+            var authSession = new AuthSession(id, accountId, validationSession.Value.DeviceId, validationSession.Value.DeviceName,
+                createdAtUtc, lastSeenAtUtc, expiresAtUtc, revokedAtUtc, revocationReason);
             return Result.Success(authSession);
         }
 
@@ -150,7 +152,7 @@ namespace FamilyBudget.Core.Models.Auth
             return Result.Success();
         }
 
-        private static Result ValidateSession(Guid id, Guid accountId, string deviceId, string deviceName, DateTimeOffset createdAtUtc, DateTimeOffset lastSeenAtUtc,
+        private static Result<(string DeviceId, string DeviceName)> ValidateSession(Guid id, Guid accountId, string deviceId, string deviceName, DateTimeOffset createdAtUtc, DateTimeOffset lastSeenAtUtc,
             DateTimeOffset expiresAtUtc, DateTimeOffset? revokedAtUtc)
         {
             var normalizedDeviceId = deviceId?.Trim();
@@ -158,32 +160,32 @@ namespace FamilyBudget.Core.Models.Auth
 
             if (id == Guid.Empty)
             {
-                return Result.Failure("Id cannot be empty.");
+                return Result.Failure<(string DeviceId, string DeviceName)>("Id cannot be empty.");
             }
 
             if (accountId == Guid.Empty)
             {
-                return Result.Failure("AccountId cannot be empty.");
+                return Result.Failure<(string DeviceId, string DeviceName)>("AccountId cannot be empty.");
             }
 
             if (string.IsNullOrWhiteSpace(normalizedDeviceId))
             {
-                return Result.Failure("DeviceId cannot be empty.");
+                return Result.Failure<(string DeviceId, string DeviceName)>("DeviceId cannot be empty.");
             }
 
             if (string.IsNullOrWhiteSpace(normalizedDeviceName))
             {
-                return Result.Failure("DeviceName cannot be empty.");
+                return Result.Failure<(string DeviceId, string DeviceName)>("DeviceName cannot be empty.");
             }
 
             if (normalizedDeviceId.Length > MaxDeviceIdLength)
             {
-                return Result.Failure($"DeviceId cannot be longer than {MaxDeviceIdLength} symbols.");
+                return Result.Failure<(string DeviceId, string DeviceName)>($"DeviceId cannot be longer than {MaxDeviceIdLength} symbols.");
             }
 
             if (normalizedDeviceName.Length > MaxDeviceNameLength)
             {
-                return Result.Failure($"DeviceName cannot be longer than {MaxDeviceNameLength} symbols.");
+                return Result.Failure<(string DeviceId, string DeviceName)>($"DeviceName cannot be longer than {MaxDeviceNameLength} symbols.");
             }
 
             if (createdAtUtc.Offset != TimeSpan.Zero || 
@@ -192,15 +194,15 @@ namespace FamilyBudget.Core.Models.Auth
                 (revokedAtUtc.HasValue &&
                 revokedAtUtc.Value.Offset != TimeSpan.Zero))
             {
-                return Result.Failure("All DateTimeOffset values must be in UTC.");
+                return Result.Failure<(string DeviceId, string DeviceName)>("All DateTimeOffset values must be in UTC.");
             }
 
             if (createdAtUtc >= expiresAtUtc)
             {
-                return Result.Failure("CreatedAtUtc must be before ExpiresAtUtc.");
+                return Result.Failure<(string DeviceId, string DeviceName)>("CreatedAtUtc must be before ExpiresAtUtc.");
             }
 
-            return Result.Success();
+            return Result.Success((normalizedDeviceId, normalizedDeviceName));
         }
     }   
 }

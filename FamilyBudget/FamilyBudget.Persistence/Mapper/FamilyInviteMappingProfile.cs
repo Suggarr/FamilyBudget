@@ -11,7 +11,8 @@ namespace FamilyBudget.Persistence.Mapper
             CreateMap<FamilyInviteEntity, FamilyInvite>()
                 .ConstructUsing(f => FamilyInvite.Create(f.Id, f.FamilyId, f.Code, f.CreatedAt, f.ExpiresAt).Value);
 
-            CreateMap<FamilyInvite, FamilyInviteEntity>();
+            CreateMap<FamilyInvite, FamilyInviteEntity>()
+                .ForMember(entity => entity.Family, options => options.Ignore());
         }
     }
 }
